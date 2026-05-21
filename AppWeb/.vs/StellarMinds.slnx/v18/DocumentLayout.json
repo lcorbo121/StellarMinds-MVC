@@ -1,0 +1,89 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\ProyectoP3\\Obligatorio-N3D-335305-364673\\StellarMinds\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{D4C030E5-495D-CC3C-F6BE-BC3BABC8BC36}|..\\StellarMinds.LogicaAplicacion\\StellarMinds.LogicaAplicacion.csproj|c:\\proyectop3\\obligatorio-n3d-335305-364673\\stellarminds.logicaaplicacion\\casosuso\\prestamo\\altaprestamo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D4C030E5-495D-CC3C-F6BE-BC3BABC8BC36}|..\\StellarMinds.LogicaAplicacion\\StellarMinds.LogicaAplicacion.csproj|c:\\proyectop3\\obligatorio-n3d-335305-364673\\stellarminds.logicaaplicacion\\dto\\prestamo\\altaprestamodto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{44B8873F-6E5E-39D2-A873-6F86EFEAA2AF}|..\\StellarMinds.LogicaNegocio\\StellarMinds.LogicaNegocio.csproj|c:\\proyectop3\\obligatorio-n3d-335305-364673\\stellarminds.logicanegocio\\entidades\\equipo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{44B8873F-6E5E-39D2-A873-6F86EFEAA2AF}|..\\StellarMinds.LogicaNegocio\\StellarMinds.LogicaNegocio.csproj|c:\\proyectop3\\obligatorio-n3d-335305-364673\\stellarminds.logicanegocio\\excepciones\\equiposinstockexception.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "AltaPrestamo.cs",
+              "DocumentMoniker": "C:\\ProyectoP3\\Obligatorio-N3D-335305-364673\\StellarMinds.LogicaAplicacion\\CasosUso\\Prestamo\\AltaPrestamo.cs",
+              "RelativeDocumentMoniker": "..\\StellarMinds.LogicaAplicacion\\CasosUso\\Prestamo\\AltaPrestamo.cs",
+              "ToolTip": "C:\\ProyectoP3\\Obligatorio-N3D-335305-364673\\StellarMinds.LogicaAplicacion\\CasosUso\\Prestamo\\AltaPrestamo.cs",
+              "RelativeToolTip": "..\\StellarMinds.LogicaAplicacion\\CasosUso\\Prestamo\\AltaPrestamo.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T22:51:32.857Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "AltaPrestamoDto.cs",
+              "DocumentMoniker": "C:\\ProyectoP3\\Obligatorio-N3D-335305-364673\\StellarMinds.LogicaAplicacion\\Dto\\Prestamo\\AltaPrestamoDto.cs",
+              "RelativeDocumentMoniker": "..\\StellarMinds.LogicaAplicacion\\Dto\\Prestamo\\AltaPrestamoDto.cs",
+              "ToolTip": "C:\\ProyectoP3\\Obligatorio-N3D-335305-364673\\StellarMinds.LogicaAplicacion\\Dto\\Prestamo\\AltaPrestamoDto.cs",
+              "RelativeToolTip": "..\\StellarMinds.LogicaAplicacion\\Dto\\Prestamo\\AltaPrestamoDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T12:41:27.709Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "EquipoSinStockException.cs",
+              "DocumentMoniker": "C:\\ProyectoP3\\Obligatorio-N3D-335305-364673\\StellarMinds.LogicaNegocio\\Excepciones\\EquipoSinStockException.cs",
+              "RelativeDocumentMoniker": "..\\StellarMinds.LogicaNegocio\\Excepciones\\EquipoSinStockException.cs",
+              "ToolTip": "C:\\ProyectoP3\\Obligatorio-N3D-335305-364673\\StellarMinds.LogicaNegocio\\Excepciones\\EquipoSinStockException.cs",
+              "RelativeToolTip": "..\\StellarMinds.LogicaNegocio\\Excepciones\\EquipoSinStockException.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T12:39:42.095Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Equipo.cs",
+              "DocumentMoniker": "C:\\ProyectoP3\\Obligatorio-N3D-335305-364673\\StellarMinds.LogicaNegocio\\Entidades\\Equipo.cs",
+              "RelativeDocumentMoniker": "..\\StellarMinds.LogicaNegocio\\Entidades\\Equipo.cs",
+              "ToolTip": "C:\\ProyectoP3\\Obligatorio-N3D-335305-364673\\StellarMinds.LogicaNegocio\\Entidades\\Equipo.cs",
+              "RelativeToolTip": "..\\StellarMinds.LogicaNegocio\\Entidades\\Equipo.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAACsAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T12:38:42.06Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
