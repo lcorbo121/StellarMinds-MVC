@@ -13,21 +13,5 @@
     <None Remove=".github\**" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.7">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\StellarMinds.Infraestructura\StellarMinds.Infraestructura.csproj" />
-    <ProjectReference Include="..\StellarMinds.LogicaAplicacion\StellarMinds.LogicaAplicacion.csproj" />
-    <ProjectReference Include="..\StellarMinds.LogicaNegocio\StellarMinds.LogicaNegocio.csproj" />
-  </ItemGroup>
 
 </Project>

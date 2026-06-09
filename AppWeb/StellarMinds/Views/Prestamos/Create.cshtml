@@ -1,58 +1,302 @@
 @model StellarMinds.Models.Prestamos.PrestamoViewModel
 @{ ViewData["Title"] = "Registrar préstamo"; }
+
 <div class="d-flex justify-content-between align-items-center mb-3"><h2>Registrar préstamo</h2></div>
+
 @if (TempData["Exito"] != null) { <div class="alert alert-success alert-dismissible fade show">@TempData["Exito"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
-@if (TempData["Error"] != null) { <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+@if (TempData["Error"] != null)  { <div class="alert alert-danger  alert-dismissible fade show">@TempData["Error"]<button  type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
 <div id="disponibilidadAlerta" class="alert alert-warning d-none"><strong>Sin disponibilidad:</strong> El telescopio seleccionado no tiene unidades disponibles.</div>
-<div class="row"><div class="col-md-8"><div class="card shadow-sm"><div class="card-body">
-<form asp-action="Create" method="post" id="formPrestamo">
-    @Html.AntiForgeryToken()
-    <div class="mb-3"><label asp-for="UsuarioId" class="form-label"></label><select asp-for="UsuarioId" id="selectSocio" class="form-select"><option value="">-- Seleccione un socio --</option></select></div>
-    <div class="mb-3"><label asp-for="TelescopioId" class="form-label"></label><select asp-for="TelescopioId" id="selectTelescopio" class="form-select"><option value="">-- Seleccione un telescopio --</option></select><div id="disponibilidadInfo" class="form-text"></div></div>
-    <div class="mb-3"><label asp-for="MonturaId" class="form-label"></label><select asp-for="MonturaId" id="selectMontura" class="form-select"><option value="">-- Seleccione una montura --</option></select></div>
-    <div class="row mb-3">
-        <div class="col-md-6"><label asp-for="CamaraId" class="form-label"></label><select asp-for="CamaraId" id="selectCamara" class="form-select"><option value="">-- Sin cámara --</option></select></div>
-        <div class="col-md-6"><label asp-for="OcularId" class="form-label"></label><select asp-for="OcularId" id="selectOcular" class="form-select"><option value="">-- Sin ocular --</option></select></div>
+
+<div class="row g-4">
+    @* Formulario *@
+    <div class="col-md-8">
+        <div class="card shadow-sm"><div class="card-body">
+        <form asp-action="Create" method="post" id="formPrestamo">
+            @Html.AntiForgeryToken()
+            <div class="mb-3">
+                <label asp-for="UsuarioId" class="form-label"></label>
+                <select asp-for="UsuarioId" id="selectSocio" class="form-select"><option value="">-- Seleccione un socio --</option></select>
+            </div>
+            <div class="mb-3">
+                <label asp-for="TelescopioId" class="form-label"></label>
+                <select asp-for="TelescopioId" id="selectTelescopio" class="form-select"><option value="">-- Seleccione un telescopio --</option></select>
+                <div id="disponibilidadInfo" class="form-text"></div>
+            </div>
+            <div class="mb-3">
+                <label asp-for="MonturaId" class="form-label"></label>
+                <select asp-for="MonturaId" id="selectMontura" class="form-select"><option value="">-- Seleccione una montura --</option></select>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label asp-for="CamaraId" class="form-label"></label>
+                    <select asp-for="CamaraId" id="selectCamara" class="form-select"><option value="">-- Sin cámara --</option></select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="OcularId" class="form-label"></label>
+                    <select asp-for="OcularId" id="selectOcular" class="form-select"><option value="">-- Sin ocular --</option></select>
+                </div>
+            </div>
+            <div class="form-text text-muted mb-3">Debe seleccionar al menos una cámara o un ocular.</div>
+            <div class="row mb-3">
+                <div class="col-md-6"><label asp-for="FechaInicio" class="form-label"></label><input asp-for="FechaInicio" class="form-control" type="date" /></div>
+                <div class="col-md-6"><label asp-for="FechaFin"    class="form-label"></label><input asp-for="FechaFin"    class="form-control" type="date" /></div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" id="btnSubmit" class="btn btn-primary">Registrar préstamo</button>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+        </div></div>
     </div>
-    <div class="form-text text-muted mb-3">Debe seleccionar al menos una cámara o un ocular.</div>
-    <div class="row mb-3">
-        <div class="col-md-6"><label asp-for="FechaInicio" class="form-label"></label><input asp-for="FechaInicio" class="form-control" type="date" /></div>
-        <div class="col-md-6"><label asp-for="FechaFin" class="form-label"></label><input asp-for="FechaFin" class="form-control" type="date" /></div>
+
+    @* Panel de compatibilidad *@
+    <div class="col-md-4">
+        <div id="infoPanel" class="d-none">
+
+            @* Card Telescopio *@
+            <div id="cardTel" class="card border-info mb-3 d-none">
+                <div class="card-header bg-info bg-opacity-25 fw-semibold small">🔭 Telescopio seleccionado</div>
+                <div class="card-body small" id="bodyTel"></div>
+            </div>
+
+            @* Card Montura *@
+            <div id="cardMon" class="card mb-3 d-none">
+                <div class="card-header fw-semibold small" id="headerMon">📐 Montura seleccionada</div>
+                <div class="card-body small" id="bodyMon"></div>
+            </div>
+
+            @* Card Cámara *@
+            <div id="cardCam" class="card mb-3 d-none">
+                <div class="card-header fw-semibold small" id="headerCam">📷 Cámara seleccionada</div>
+                <div class="card-body small" id="bodyCam"></div>
+            </div>
+
+            @* Card Ocular *@
+            <div id="cardOcu" class="card mb-3 d-none">
+                <div class="card-header fw-semibold small" id="headerOcu">🔬 Ocular seleccionado</div>
+                <div class="card-body small" id="bodyOcu"></div>
+            </div>
+        </div>
+
+        @* Placeholder vacío *@
+        <div id="infoPlaceholder" class="text-center text-muted pt-4">
+            <div style="font-size:2.5rem">🔭</div>
+            <p class="mt-2 small">Seleccioná equipos para ver<br/>información de compatibilidad.</p>
+        </div>
     </div>
-    <div class="d-flex gap-2"><button type="submit" id="btnSubmit" class="btn btn-primary">Registrar préstamo</button><a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Cancelar</a></div>
-</form>
-</div></div></div></div>
+</div>
+
 @section Scripts {
 <script>
-    const socios = @Html.Raw(ViewBag.SociosJson ?? "[]");
+(function () {
+    const socios      = @Html.Raw(ViewBag.SociosJson    ?? "[]");
     const telescopios = @Html.Raw(ViewBag.TelescopiosJson ?? "[]");
-    const monturas = @Html.Raw(ViewBag.MonturasJson ?? "[]");
-    const camaras = @Html.Raw(ViewBag.CamarasJson ?? "[]");
-    const oculares = @Html.Raw(ViewBag.OcularesJson ?? "[]");
+    const monturas    = @Html.Raw(ViewBag.MonturasJson  ?? "[]");
+    const camaras     = @Html.Raw(ViewBag.CamarasJson   ?? "[]");
+    const oculares    = @Html.Raw(ViewBag.OcularesJson  ?? "[]");
 
-    function llenar(id, items) {
+    // -- Poblar selects --
+    function llenar(id, items, labelFn) {
         const sel = document.getElementById(id);
-        const first = sel.options[0]; sel.innerHTML = ''; sel.appendChild(first);
-        items.forEach(i => { const o = document.createElement('option'); o.value = i.id; o.textContent = (i.nombreCompleto || i.marca + ' ' + i.modelo); sel.appendChild(o); });
+        const first = sel.options[0];
+        sel.innerHTML = '';
+        sel.appendChild(first);
+        items.forEach(i => {
+            const o = document.createElement('option');
+            o.value = i.id;
+            o.textContent = labelFn(i);
+            sel.appendChild(o);
+        });
     }
-    llenar('selectSocio', socios);
-    ['selectTelescopio','selectMontura','selectCamara','selectOcular'].forEach((id,i) => {
-        const arr = [telescopios,monturas,camaras,oculares][i];
-        const sel = document.getElementById(id); const first = sel.options[0]; sel.innerHTML=''; sel.appendChild(first);
-        arr.forEach(e => { const o = document.createElement('option'); o.value=e.id; o.textContent=e.marca+' '+e.modelo; sel.appendChild(o); });
-    });
+    llenar('selectSocio',      socios,      i => i.nombreCompleto);
+    llenar('selectTelescopio', telescopios, i => `${i.marca} ${i.modelo}`);
+    llenar('selectMontura',    monturas,    i => `${i.marca} ${i.modelo}`);
+    llenar('selectCamara',     camaras,     i => `${i.marca} ${i.modelo}`);
+    llenar('selectOcular',     oculares,    i => `${i.marca} ${i.modelo}`);
 
-    document.getElementById('selectTelescopio').addEventListener('change', async function() {
-        const id = this.value;
+    // -- Helpers --
+    function find(arr, id)  { return arr.find(x => x.id === parseInt(id)) || null; }
+    function row(label, val, cls) {
+        return `<div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">${label}</span>
+            <span class="${cls||''} fw-semibold">${val}</span>
+        </div>`;
+    }
+    function badge(ok, txt) {
+        return `<span class="badge ${ok ? 'bg-success' : 'bg-danger'}">${txt}</span>`;
+    }
+    function alert(type, msg) {
+        return `<div class="alert alert-${type} py-1 px-2 mb-1 small">${msg}</div>`;
+    }
+
+    // -- Estado actual --
+    let tel = null, mon = null, cam = null, ocu = null;
+
+    // -- Disponibilidad --
+    async function checkDisponibilidad(id) {
         const alerta = document.getElementById('disponibilidadAlerta');
-        const info = document.getElementById('disponibilidadInfo');
-        const btn = document.getElementById('btnSubmit');
-        if (!id) { alerta.classList.add('d-none'); info.textContent=''; btn.disabled=false; return; }
+        const info   = document.getElementById('disponibilidadInfo');
+        const btn    = document.getElementById('btnSubmit');
+        if (!id) { alerta.classList.add('d-none'); info.textContent = ''; btn.disabled = false; return; }
         try {
             const resp = await fetch(`/Equipos/Disponibilidad?id=${id}`);
-            if (resp.ok) { const d = await resp.json(); if (d.disponibles<=0) { alerta.classList.remove('d-none'); info.textContent='Unidades disponibles: 0'; btn.disabled=true; } else { alerta.classList.add('d-none'); info.textContent=`Unidades disponibles: ${d.disponibles}`; btn.disabled=false; } }
-        } catch(e) { info.textContent=''; }
+            if (resp.ok) {
+                const d = await resp.json();
+                if (d.disponibles <= 0) {
+                    alerta.classList.remove('d-none'); info.textContent = 'Unidades disponibles: 0'; btn.disabled = true;
+                } else {
+                    alerta.classList.add('d-none'); info.textContent = `Unidades disponibles: ${d.disponibles}`; btn.disabled = false;
+                }
+            }
+        } catch { info.textContent = ''; }
+    }
+
+    // -- Render panel --
+    function renderPanel() {
+        const panel = document.getElementById('infoPanel');
+        const placeholder = document.getElementById('infoPlaceholder');
+        const alguno = tel || mon || cam || ocu;
+        panel.classList.toggle('d-none', !alguno);
+        placeholder.classList.toggle('d-none', !!alguno);
+
+        renderTel();
+        renderMon();
+        renderCam();
+        renderOcu();
+    }
+
+    function renderTel() {
+        const card = document.getElementById('cardTel');
+        const body = document.getElementById('bodyTel');
+        if (!tel) { card.classList.add('d-none'); return; }
+        card.classList.remove('d-none');
+        body.innerHTML =
+            row('Apertura',       `${tel.apertura} mm`) +
+            row('Relación focal', `f/${tel.relacionFocal}`) +
+            row('Focal',          `${tel.distanciaFocal} mm`) +
+            row('Peso',           `${tel.peso} kg`) +
+            row('Disponibles',    tel.cantidadDisponible,
+                tel.cantidadDisponible > 0 ? 'text-success' : 'text-danger');
+    }
+
+    function renderMon() {
+        const card   = document.getElementById('cardMon');
+        const header = document.getElementById('headerMon');
+        const body   = document.getElementById('bodyMon');
+        if (!mon) { card.classList.add('d-none'); return; }
+        card.classList.remove('d-none');
+
+        let compat = null;
+        if (tel) {
+            const ok = mon.cargaUtil >= tel.peso;
+            compat = ok
+                ? alert('success', `✔ Carga útil (${mon.cargaUtil} kg) soporta el telescopio (${tel.peso} kg)`)
+                : alert('danger',  `✘ Carga útil (${mon.cargaUtil} kg) insuficiente para el telescopio (${tel.peso} kg)`);
+            header.className = `card-header fw-semibold small ${ok ? 'bg-success' : 'bg-danger'} bg-opacity-25`;
+        } else {
+            header.className = 'card-header fw-semibold small';
+        }
+
+        const fotoInfo = mon.tipoMontura === 'Alt-Azimutal'
+            ? alert('warning', '⚠ Montura Alt-Azimutal: no recomendada para astrofotografía de larga exposición.')
+            : '';
+
+        body.innerHTML =
+            row('Tipo',        mon.tipoMontura) +
+            row('Carga útil',  `${mon.cargaUtil} kg`) +
+            row('GoTo',        mon.esGoTo ? 'Sí' : 'No') +
+            row('Disponibles', mon.cantidadDisponible,
+                mon.cantidadDisponible > 0 ? 'text-success' : 'text-danger') +
+            (compat || '') +
+            fotoInfo;
+    }
+
+    function renderCam() {
+        const card   = document.getElementById('cardCam');
+        const header = document.getElementById('headerCam');
+        const body   = document.getElementById('bodyCam');
+        if (!cam) { card.classList.add('d-none'); return; }
+        card.classList.remove('d-none');
+
+        let muestreoHtml = '';
+        if (tel) {
+            const muestreo = (cam.tamanoPixel * 206.265) / tel.apertura;
+            const m = muestreo.toFixed(2);
+            let tipo, cls;
+            if (muestreo < 0.5)      { tipo = 'Sobremuestreado'; cls = 'warning'; }
+            else if (muestreo <= 2.0) { tipo = 'Óptimo';          cls = 'success'; }
+            else                      { tipo = 'Submuestreado';    cls = 'warning'; }
+            header.className = `card-header fw-semibold small bg-${cls} bg-opacity-25`;
+            muestreoHtml =
+                row('Muestreo angular', `${m} "/px`, cls === 'success' ? 'text-success' : 'text-warning') +
+                alert(cls, `${tipo} — ideal: 0.5–2.0 "/px`);
+        } else {
+            header.className = 'card-header fw-semibold small';
+        }
+
+        body.innerHTML =
+            row('Sensor',      cam.tipoSensor) +
+            row('Resolución',  cam.resolucion) +
+            row('Tamaño píxel',`${cam.tamanoPixel} μm`) +
+            row('Disponibles', cam.cantidadDisponible,
+                cam.cantidadDisponible > 0 ? 'text-success' : 'text-danger') +
+            muestreoHtml;
+    }
+
+    function renderOcu() {
+        const card   = document.getElementById('cardOcu');
+        const header = document.getElementById('headerOcu');
+        const body   = document.getElementById('bodyOcu');
+        if (!ocu) { card.classList.add('d-none'); return; }
+        card.classList.remove('d-none');
+
+        let calcHtml = '';
+        if (tel) {
+            const mag      = tel.distanciaFocal / ocu.diametro;
+            const pupila   = ocu.diametro / tel.relacionFocal;
+            const maxUtil  = 2 * tel.apertura;
+
+            const magOk    = mag <= maxUtil;
+            const pupilaOk = pupila >= 0.5 && pupila <= 7;
+
+            header.className = `card-header fw-semibold small ${magOk && pupilaOk ? 'bg-info' : 'bg-warning'} bg-opacity-25`;
+
+            calcHtml =
+                row('Magnificación', `${mag.toFixed(0)}×`, magOk ? '' : 'text-danger') +
+                (!magOk ? alert('danger', `Supera la magnif. máxima útil (${maxUtil}×)`) : '') +
+                row('Pupila de salida', `${pupila.toFixed(1)} mm`, pupilaOk ? '' : 'text-warning') +
+                (!pupilaOk ? alert('warning', 'Pupila ideal: 0.5–7 mm') : '');
+        } else {
+            header.className = 'card-header fw-semibold small';
+        }
+
+        body.innerHTML =
+            row('Diámetro',    `${ocu.diametro} mm`) +
+            row('Campo apte.', `${ocu.anguloVision}°`) +
+            row('Disponibles', ocu.cantidadDisponible,
+                ocu.cantidadDisponible > 0 ? 'text-success' : 'text-danger') +
+            calcHtml;
+    }
+
+    // -- Event listeners --
+    document.getElementById('selectTelescopio').addEventListener('change', function () {
+        tel = find(telescopios, this.value);
+        checkDisponibilidad(this.value);
+        renderPanel();
     });
+    document.getElementById('selectMontura').addEventListener('change', function () {
+        mon = find(monturas, this.value);
+        renderPanel();
+    });
+    document.getElementById('selectCamara').addEventListener('change', function () {
+        cam = find(camaras, this.value);
+        renderPanel();
+    });
+    document.getElementById('selectOcular').addEventListener('change', function () {
+        ocu = find(oculares, this.value);
+        renderPanel();
+    });
+})();
 </script>
 <partial name="_ValidationScriptsPartial" />
 }
