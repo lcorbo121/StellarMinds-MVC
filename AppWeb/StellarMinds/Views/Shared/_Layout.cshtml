@@ -110,5 +110,30 @@
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)
+<script>
+    (function () {
+        function removeSomeeWatermarks() {
+            document.querySelectorAll('a[href*="somee.com"], img[src*="somee.com"], iframe[src*="somee.com"]').forEach(function (el) {
+                var target = el;
+                var p = el.parentElement;
+                while (p && p !== document.body && p !== document.documentElement) {
+                    target = p;
+                    p = p.parentElement;
+                }
+                target.style.display = 'none';
+                try { target.remove(); } catch (e) { }
+            });
+        }
+        removeSomeeWatermarks();
+        new MutationObserver(function () {
+            setTimeout(removeSomeeWatermarks, 0);
+        }).observe(document.documentElement, { childList: true, subtree: true });
+        window.addEventListener('load', function () {
+            removeSomeeWatermarks();
+            setTimeout(removeSomeeWatermarks, 500);
+            setTimeout(removeSomeeWatermarks, 1500);
+        });
+    })();
+</script>
 </body>
 </html>
