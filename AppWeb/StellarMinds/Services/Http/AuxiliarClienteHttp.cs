@@ -13,7 +13,7 @@ namespace WebApp.Services.Http
             _factory = factory;
         }
 
-        public HttpResponseMessage EnviarSolicitud(string relativeUrl, string verbo, object? body = null, string? token = null)
+        public HttpResponseMessage EnviarSolicitud(string relativeUrl, string verbo, object? body = null, string? token = null, bool throwOnError = true)
         {
             var client = _factory.CreateClient("Api");
             if (!string.IsNullOrEmpty(token))
@@ -28,7 +28,7 @@ namespace WebApp.Services.Http
                 _ => throw new ArgumentException("Verbo no soportado", nameof(verbo))
             };
 
-            resp.EnsureSuccessStatusCode();
+            if (throwOnError) resp.EnsureSuccessStatusCode();
             return resp;
         }
 
