@@ -95,6 +95,16 @@ namespace StellarMinds.Controllers
         }
 
         [HttpGet]
+        public IActionResult TodosPrestamos()
+        {
+            if (Token == null) return RedirectToAction("Index", "Usuarios");
+            if (Rol != "Coordinador" && Rol != "Administrador") return Forbid();
+            var prestamos = _http.EnviarYDeserializar<List<JsonElement>>("api/prestamos/todos", "GET", token: Token, throwOnError: false) ?? [];
+            ViewBag.Prestamos = prestamos;
+            return View();
+        }
+
+        [HttpGet]
         public IActionResult SociosPorTelescopio()
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");

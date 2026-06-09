@@ -1,0 +1,130 @@
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Todos los préstamos";
+    var lista = (ViewBag.Prestamos as List<JsonElement>) ?? new List<JsonElement>();
+    var enPrestamo = lista.Count(p => p.TryGetProperty("estado", out var e) && e.GetString() == "EN PRÉSTAMO");
+    var devueltos  = lista.Count(p => p.TryGetProperty("estado", out var e) && e.GetString() == "DEVUELTO");
+    var atrasados  = lista.Count(p => p.TryGetProperty("atrasado", out var a) && a.GetBoolean());
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Todos los préstamos</h2>
+    <div class="d-flex gap-2">
+        <span class="badge bg-primary fs-6">@lista.Count total</span>
+        <span class="badge bg-warning text-dark fs-6">@enPrestamo en préstamo</span>
+        <span class="badge bg-success fs-6">@devueltos devueltos</span>
+        @if (atrasados > 0)
+        {
+            <span class="badge bg-danger fs-6">@atrasados atrasados</span>
+        }
+    </div>
+</div>
+
+@if (!lista.Any())
+{
+    <div class="alert alert-info">No hay préstamos registrados.</div>
+}
+else
+{
+    <div class="row g-2 mb-3">
+        <div class="col-md-6">
+            <input type="text" id="filtro" class="form-control" placeholder="Filtrar por socio, telescopio..." />
+        </div>
+        <div class="col-md-6 d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm filtro-estado active" data-estado="">Todos</button>
+            <button class="btn btn-outline-warning btn-sm filtro-estado" data-estado="EN PRÉSTAMO">En préstamo</button>
+            <button class="btn btn-outline-success btn-sm filtro-estado" data-estado="DEVUELTO">Devueltos</button>
+            <button class="btn btn-outline-danger btn-sm filtro-estado" data-estado="ATRASADO">Atrasados</button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" id="tablaPrestamos">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Socio</th>
+                    <th>Telescopio</th>
+                    <th>Montura</th>
+                    <th>Accesorio</th>
+                    <th>Inicio</th>
+                    <th>Vencimiento</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in lista)
+                {
+                    var id          = p.TryGetProperty("id",            out var pId)  ? pId.GetInt32()    : 0;
+                    var socio       = p.TryGetProperty("usuarioNombre", out var pS)   ? pS.GetString()    : "";
+                    var telescopio  = p.TryGetProperty("telescopioNombre", out var pT) ? pT.GetString()   : "";
+                    var montura     = p.TryGetProperty("monturaNombre", out var pM)   ? pM.GetString()    : "";
+                    var camara      = p.TryGetProperty("camaraNombre",  out var pC) && pC.ValueKind != JsonValueKind.Null ? pC.GetString() : null;
+                    var ocular      = p.TryGetProperty("ocularNombre",  out var pO) && pO.ValueKind != JsonValueKind.Null ? pO.GetString() : null;
+                    var accesorio   = camara ?? ocular ?? "—";
+                    var inicio      = p.TryGetProperty("fechaInicio",   out var pFi)  ? DateTime.Parse(pFi.GetString()!).ToString("dd/MM/yyyy") : "";
+                    var fin         = p.TryGetProperty("fechaFin",      out var pFf)  ? DateTime.Parse(pFf.GetString()!).ToString("dd/MM/yyyy") : "";
+                    var estado      = p.TryGetProperty("estado",        out var pE)   ? pE.GetString()    : "";
+                    var atrasado    = p.TryGetProperty("atrasado",      out var pA)   && pA.GetBoolean();
+                    var estadoCss   = estado == "DEVUELTO" ? "success" : atrasado ? "danger" : "warning";
+                    var estadoLabel = atrasado ? "ATRASADO" : estado;
+
+                    <tr data-estado="@estado" data-atrasado="@atrasado.ToString().ToLower()">
+                        <td class="text-muted small">@id</td>
+                        <td><strong>@socio</strong></td>
+                        <td>@telescopio</td>
+                        <td class="text-muted small">@montura</td>
+                        <td>
+                            @if (camara != null)
+                            {
+                                <span class="badge bg-info text-dark">Cám</span> <span class="small">@camara</span>
+                            }
+                            else if (ocular != null)
+                            {
+                                <span class="badge bg-secondary">Ocular</span> <span class="small">@ocular</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
+                        <td class="small">@inicio</td>
+                        <td class="small @(atrasado ? "text-danger fw-bold" : "")">@fin</td>
+                        <td><span class="badge bg-@estadoCss">@estadoLabel</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section Scripts {
+<script>
+    var filtroTexto = document.getElementById('filtro');
+    var estadoActivo = '';
+
+    function aplicarFiltros() {
+        var q = filtroTexto ? filtroTexto.value.toLowerCase() : '';
+        document.querySelectorAll('#tablaPrestamos tbody tr').forEach(function(tr) {
+            var textoOk = !q || tr.textContent.toLowerCase().includes(q);
+            var estadoOk = true;
+            if (estadoActivo === 'ATRASADO') {
+                estadoOk = tr.dataset.atrasado === 'true';
+            } else if (estadoActivo !== '') {
+                estadoOk = tr.dataset.estado === estadoActivo;
+            }
+            tr.style.display = (textoOk && estadoOk) ? '' : 'none';
+        });
+    }
+
+    if (filtroTexto) filtroTexto.addEventListener('input', aplicarFiltros);
+
+    document.querySelectorAll('.filtro-estado').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filtro-estado').forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            estadoActivo = this.dataset.estado;
+            aplicarFiltros();
+        });
+    });
+</script>
+}

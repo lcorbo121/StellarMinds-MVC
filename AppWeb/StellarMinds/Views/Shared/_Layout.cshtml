@@ -68,14 +68,15 @@
                         }
                         @if (rol == "Coordinador")
                         {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Prestamos" asp-action="Create">Registrar préstamo</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Prestamos" asp-action="Devolucion">Devolución</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Prestamos" asp-action="SociosPorTelescopio">Socios por telescopio</a>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Préstamos</a>
+                                <ul class="dropdown-menu dropdown-menu-dark">
+                                    <li><a class="dropdown-item" asp-controller="Prestamos" asp-action="Create">Registrar préstamo</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Prestamos" asp-action="Devolucion">Registrar devolución</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Prestamos" asp-action="TodosPrestamos">Ver todos</a></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li><a class="dropdown-item" asp-controller="Prestamos" asp-action="SociosPorTelescopio">Socios por telescopio</a></li>
+                                </ul>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Observaciones" asp-action="TodasObservaciones">Observaciones</a>
