@@ -75,10 +75,10 @@ body.light-mode .theme-toggle-nav:hover { border-color: #0969da; color: #0969da;
 /* Ocultar marcas de agua de SOMEE */
 a[href*="somee.com"],
 img[src*="somee.com"],
-div[style*="somee.com"] {
+iframe[src*="somee.com"],
+center:has(a[href*="somee.com"]) {
     display: none !important;
     visibility: hidden !important;
-    opacity: 0 !important;
     height: 0 !important;
     overflow: hidden !important;
 }
