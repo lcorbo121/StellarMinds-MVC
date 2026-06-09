@@ -2,7 +2,7 @@ name: Deploy Frontend to SOMEE
 
 on:
   push:
-    branches: [ main ]
+    branches: [ somee ]
 
 jobs:
   deploy:
