@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using WebApp.Services.Http;
 
 namespace StellarMinds
@@ -14,6 +15,8 @@ namespace StellarMinds
             {
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.Lax;
             });
 
             var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7158/";
@@ -22,14 +25,19 @@ namespace StellarMinds
 
             var app = builder.Build();
 
+            // Permite que el app conozca el esquema real cuando está detrás del proxy de SOMEE/IIS
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
+
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
 
-            if (app.Environment.IsDevelopment())
-                app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
 
             app.UseRouting();
             app.UseStaticFiles();
