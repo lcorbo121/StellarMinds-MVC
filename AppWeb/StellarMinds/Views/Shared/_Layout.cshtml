@@ -113,17 +113,26 @@
 <script>
     (function () {
         function removeSomeeWatermarks() {
-            document.querySelectorAll('a[href*="somee.com"], img[src*="somee.com"]').forEach(function (el) {
-                var parent = el.parentElement;
-                if (parent && parent !== document.body) {
-                    parent.remove();
-                } else {
-                    el.remove();
+            document.querySelectorAll('a[href*="somee.com"], img[src*="somee.com"], iframe[src*="somee.com"]').forEach(function (el) {
+                var target = el;
+                var p = el.parentElement;
+                while (p && p !== document.body && p !== document.documentElement) {
+                    target = p;
+                    p = p.parentElement;
                 }
+                target.style.display = 'none';
+                try { target.remove(); } catch (e) { }
             });
         }
         removeSomeeWatermarks();
-        new MutationObserver(removeSomeeWatermarks).observe(document.body, { childList: true, subtree: true });
+        new MutationObserver(function () {
+            setTimeout(removeSomeeWatermarks, 0);
+        }).observe(document.documentElement, { childList: true, subtree: true });
+        window.addEventListener('load', function () {
+            removeSomeeWatermarks();
+            setTimeout(removeSomeeWatermarks, 500);
+            setTimeout(removeSomeeWatermarks, 1500);
+        });
     })();
 </script>
 </body>
