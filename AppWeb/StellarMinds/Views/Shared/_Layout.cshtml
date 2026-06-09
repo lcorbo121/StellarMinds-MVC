@@ -58,8 +58,12 @@
                                     <li><a class="dropdown-item" asp-controller="Prestamos" asp-action="Auditoria">Auditoría</a></li>
                                 </ul>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Observaciones" asp-action="Create">Registrar observación</a>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Observaciones</a>
+                                <ul class="dropdown-menu dropdown-menu-dark">
+                                    <li><a class="dropdown-item" asp-controller="Observaciones" asp-action="Create">Registrar observación</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Observaciones" asp-action="TodasObservaciones">Ver todas</a></li>
+                                </ul>
                             </li>
                         }
                         @if (rol == "Coordinador")
@@ -73,11 +77,17 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Prestamos" asp-action="SociosPorTelescopio">Socios por telescopio</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Observaciones" asp-action="TodasObservaciones">Observaciones</a>
+                            </li>
                         }
                         @if (rol == "Socio")
                         {
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Observaciones" asp-action="Create">Registrar observación</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Observaciones" asp-action="MisObservaciones">Mis observaciones</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Prestamos" asp-action="MisPrestamos">Mis préstamos</a>

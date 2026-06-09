@@ -1,0 +1,90 @@
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Mis observaciones";
+    var lista = (ViewBag.Observaciones as List<JsonElement>) ?? new List<JsonElement>();
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Mis observaciones</h2>
+    <a asp-action="Create" class="btn btn-success btn-sm">+ Nueva observación</a>
+</div>
+
+@if (!lista.Any())
+{
+    <div class="alert alert-info">No tenés observaciones registradas aún.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Fecha</th>
+                    <th>Objeto celeste</th>
+                    <th>Tipo</th>
+                    <th>Telescopio</th>
+                    <th>Evaluación IA</th>
+                    <th>Notas</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var obs in lista)
+                {
+                    var id             = obs.TryGetProperty("id", out var pId) ? pId.GetInt32() : 0;
+                    var fecha          = obs.TryGetProperty("fechaObservacion", out var pF) ? pF.GetString() : "";
+                    var objeto         = obs.TryGetProperty("objetoCeleste", out var pO) ? pO.GetString() : "";
+                    var tipo           = obs.TryGetProperty("tipoObjeto", out var pT) ? pT.GetString() : "";
+                    var telescopio     = obs.TryGetProperty("telescopio", out var pTel) ? pTel.GetString() : "";
+                    var indicador      = obs.TryGetProperty("indicadorIA", out var pInd) ? pInd.GetString() : "";
+                    var detalle        = obs.TryGetProperty("detalleIA", out var pDet) ? pDet.GetString() : "";
+                    var notas          = obs.TryGetProperty("notas", out var pN) ? pN.GetString() : "";
+                    var badgeCss = indicador switch { "IDEAL" => "success", "ADECUADO" => "warning", "NO RECOMENDABLE" => "danger", _ => "secondary" };
+
+                    <tr>
+                        <td class="text-muted small">@id</td>
+                        <td>@fecha</td>
+                        <td><strong>@objeto</strong></td>
+                        <td><span class="badge bg-secondary">@tipo</span></td>
+                        <td>@telescopio</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(indicador))
+                            {
+                                <span class="badge bg-@badgeCss">@indicador</span>
+                                @if (!string.IsNullOrEmpty(detalle))
+                                {
+                                    <button type="button" class="btn btn-link btn-sm p-0 ms-1"
+                                            data-bs-toggle="popover" data-bs-trigger="focus"
+                                            data-bs-content="@detalle" title="Detalle IA">
+                                        <small>ver detalle</small>
+                                    </button>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(notas))
+                            {
+                                <span class="text-truncate d-inline-block" style="max-width:200px" title="@notas">@notas</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section Scripts {
+<script>
+    document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function(el) {
+        new bootstrap.Popover(el, { html: false });
+    });
+</script>
+}
