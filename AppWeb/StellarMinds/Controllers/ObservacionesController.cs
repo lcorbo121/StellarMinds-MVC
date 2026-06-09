@@ -68,9 +68,15 @@ namespace StellarMinds.Controllers
                 return RedirectToAction("Create");
             }
             var dto = new { prestamoId, objetoCelesteId, fechaObservacion, notas = notas ?? "", indicadorIA = indicadorIA ?? "", detalleIA = detalleIA ?? "" };
-            var resp = _http.EnviarSolicitud("api/observaciones", "POST", dto, Token);
-            if (!resp.IsSuccessStatusCode) { TempData["Error"] = _http.ObtenerBody(resp); return RedirectToAction("Create"); }
-            TempData["ResultadoIA"] = _http.ObtenerBody(resp);
+            var resp = _http.EnviarSolicitud("api/observaciones", "POST", dto, Token, throwOnError: false);
+            var body = _http.ObtenerBody(resp);
+            if (!resp.IsSuccessStatusCode)
+            {
+                try { var err = System.Text.Json.JsonDocument.Parse(body); TempData["Error"] = err.RootElement.TryGetProperty("error", out var e) ? e.GetString() : body; }
+                catch { TempData["Error"] = body; }
+                return RedirectToAction("Create");
+            }
+            TempData["ResultadoIA"] = body;
             TempData["Exito"] = "Observación registrada correctamente.";
             return RedirectToAction("Create");
         }
