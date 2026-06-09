@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.6.11723.189
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StellarMinds", "StellarMinds.csproj", "{A5F27381-FC0A-E353-D28D-4A011287ED14}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A5F27381-FC0A-E353-D28D-4A011287ED14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5F27381-FC0A-E353-D28D-4A011287ED14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5F27381-FC0A-E353-D28D-4A011287ED14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5F27381-FC0A-E353-D28D-4A011287ED14}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {22C84102-9A8C-4C7A-9448-C7A0CD1CA6E9}
+	EndGlobalSection
+EndGlobal

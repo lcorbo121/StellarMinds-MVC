@@ -1,0 +1,58 @@
+@model StellarMinds.Models.Prestamos.PrestamoViewModel
+@{ ViewData["Title"] = "Registrar préstamo"; }
+<div class="d-flex justify-content-between align-items-center mb-3"><h2>Registrar préstamo</h2></div>
+@if (TempData["Exito"] != null) { <div class="alert alert-success alert-dismissible fade show">@TempData["Exito"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+<div id="disponibilidadAlerta" class="alert alert-warning d-none"><strong>Sin disponibilidad:</strong> El telescopio seleccionado no tiene unidades disponibles.</div>
+<div class="row"><div class="col-md-8"><div class="card shadow-sm"><div class="card-body">
+<form asp-action="Create" method="post" id="formPrestamo">
+    @Html.AntiForgeryToken()
+    <div class="mb-3"><label asp-for="UsuarioId" class="form-label"></label><select asp-for="UsuarioId" id="selectSocio" class="form-select"><option value="">-- Seleccione un socio --</option></select></div>
+    <div class="mb-3"><label asp-for="TelescopioId" class="form-label"></label><select asp-for="TelescopioId" id="selectTelescopio" class="form-select"><option value="">-- Seleccione un telescopio --</option></select><div id="disponibilidadInfo" class="form-text"></div></div>
+    <div class="mb-3"><label asp-for="MonturaId" class="form-label"></label><select asp-for="MonturaId" id="selectMontura" class="form-select"><option value="">-- Seleccione una montura --</option></select></div>
+    <div class="row mb-3">
+        <div class="col-md-6"><label asp-for="CamaraId" class="form-label"></label><select asp-for="CamaraId" id="selectCamara" class="form-select"><option value="">-- Sin cámara --</option></select></div>
+        <div class="col-md-6"><label asp-for="OcularId" class="form-label"></label><select asp-for="OcularId" id="selectOcular" class="form-select"><option value="">-- Sin ocular --</option></select></div>
+    </div>
+    <div class="form-text text-muted mb-3">Debe seleccionar al menos una cámara o un ocular.</div>
+    <div class="row mb-3">
+        <div class="col-md-6"><label asp-for="FechaInicio" class="form-label"></label><input asp-for="FechaInicio" class="form-control" type="date" /></div>
+        <div class="col-md-6"><label asp-for="FechaFin" class="form-label"></label><input asp-for="FechaFin" class="form-control" type="date" /></div>
+    </div>
+    <div class="d-flex gap-2"><button type="submit" id="btnSubmit" class="btn btn-primary">Registrar préstamo</button><a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Cancelar</a></div>
+</form>
+</div></div></div></div>
+@section Scripts {
+<script>
+    const socios = @Html.Raw(ViewBag.SociosJson ?? "[]");
+    const telescopios = @Html.Raw(ViewBag.TelescopiosJson ?? "[]");
+    const monturas = @Html.Raw(ViewBag.MonturasJson ?? "[]");
+    const camaras = @Html.Raw(ViewBag.CamarasJson ?? "[]");
+    const oculares = @Html.Raw(ViewBag.OcularesJson ?? "[]");
+
+    function llenar(id, items) {
+        const sel = document.getElementById(id);
+        const first = sel.options[0]; sel.innerHTML = ''; sel.appendChild(first);
+        items.forEach(i => { const o = document.createElement('option'); o.value = i.id; o.textContent = (i.nombreCompleto || i.marca + ' ' + i.modelo); sel.appendChild(o); });
+    }
+    llenar('selectSocio', socios);
+    ['selectTelescopio','selectMontura','selectCamara','selectOcular'].forEach((id,i) => {
+        const arr = [telescopios,monturas,camaras,oculares][i];
+        const sel = document.getElementById(id); const first = sel.options[0]; sel.innerHTML=''; sel.appendChild(first);
+        arr.forEach(e => { const o = document.createElement('option'); o.value=e.id; o.textContent=e.marca+' '+e.modelo; sel.appendChild(o); });
+    });
+
+    document.getElementById('selectTelescopio').addEventListener('change', async function() {
+        const id = this.value;
+        const alerta = document.getElementById('disponibilidadAlerta');
+        const info = document.getElementById('disponibilidadInfo');
+        const btn = document.getElementById('btnSubmit');
+        if (!id) { alerta.classList.add('d-none'); info.textContent=''; btn.disabled=false; return; }
+        try {
+            const resp = await fetch(`/Equipos/Disponibilidad?id=${id}`);
+            if (resp.ok) { const d = await resp.json(); if (d.disponibles<=0) { alerta.classList.remove('d-none'); info.textContent='Unidades disponibles: 0'; btn.disabled=true; } else { alerta.classList.add('d-none'); info.textContent=`Unidades disponibles: ${d.disponibles}`; btn.disabled=false; } }
+        } catch(e) { info.textContent=''; }
+    });
+</script>
+<partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,35 @@
+name: Deploy Frontend to SOMEE
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Restore
+        run: dotnet restore AppWeb/StellarMinds/StellarMinds.csproj
+
+      - name: Publish
+        run: dotnet publish AppWeb/StellarMinds/StellarMinds.csproj -c Release -o ./publish --no-restore
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_FE_HOST }}
+          username: ${{ secrets.FTP_FE_USER }}
+          password: ${{ secrets.FTP_FE_PASSWORD }}
+          local-dir: ./publish/
+          server-dir: /
+          exclude: |
+            **/.git*
+            **/.git*/**

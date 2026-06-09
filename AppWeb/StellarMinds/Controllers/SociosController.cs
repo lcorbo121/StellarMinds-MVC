@@ -1,0 +1,58 @@
+using Microsoft.AspNetCore.Mvc;
+using StellarMinds.Models.Socios;
+using WebApp.Services.Http;
+
+namespace StellarMinds.Controllers
+{
+    public class SociosController : Controller
+    {
+        private readonly AuxiliarClienteHttp _http;
+
+        public SociosController(AuxiliarClienteHttp http)
+        {
+            _http = http;
+        }
+
+        private string? Token => HttpContext.Session.GetString("token");
+        private string? Rol => HttpContext.Session.GetString("rol");
+
+        [HttpGet]
+        public IActionResult Create()
+        {
+            if (Token == null) return RedirectToAction("Index", "Usuarios");
+            if (Rol != "Administrador") return Forbid();
+            return View(new SocioViewModel());
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public IActionResult Create(SocioViewModel model)
+        {
+            if (Token == null) return RedirectToAction("Index", "Usuarios");
+            if (Rol != "Administrador") return Forbid();
+            if (!ModelState.IsValid) return View(model);
+
+            var response = _http.EnviarSolicitud("api/usuarios", "POST", new
+            {
+                model.FullName,
+                model.Email,
+                model.Calle,
+                model.NumeroPuerta,
+                model.Apartamento,
+                model.Password,
+                model.PhoneNumber,
+                model.UserName,
+                model.RolNombre
+            }, Token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["Exito"] = "Socio registrado correctamente.";
+                return RedirectToAction("Create");
+            }
+
+            var error = _http.ObtenerBody(response);
+            ModelState.AddModelError("", string.IsNullOrEmpty(error) ? "Error al registrar el socio." : error);
+            return View(model);
+        }
+    }
+}

@@ -1,0 +1,28 @@
+@model StellarMinds.Models.Equipos.TelescopioViewModel
+@{ ViewData["Title"] = "Editar telescopio"; var tipo = (string)(ViewBag.Tipo ?? "telescopios"); }
+<div class="d-flex justify-content-between align-items-center mb-3"><h2>Editar telescopio</h2><a asp-action="Index" asp-route-tipo="@tipo" class="btn btn-outline-secondary">Volver</a></div>
+@if (TempData["Exito"] != null) { <div class="alert alert-success alert-dismissible fade show">@TempData["Exito"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+<div class="row"><div class="col-md-7"><div class="card shadow-sm"><div class="card-body">
+<form asp-action="EditTelescopio" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="tipo" value="@tipo" />
+    <input type="hidden" asp-for="Id" />
+    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0) { <div class="alert alert-danger"><ul class="mb-0">@foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors)) { <li>@e.ErrorMessage</li> }</ul></div> }
+    <div class="row mb-3">
+        <div class="col-md-6"><label asp-for="Marca" class="form-label"></label><input asp-for="Marca" class="form-control" /></div>
+        <div class="col-md-6"><label asp-for="Modelo" class="form-label"></label><input asp-for="Modelo" class="form-control" /></div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-4"><label asp-for="Apertura" class="form-label"></label><input asp-for="Apertura" class="form-control" type="number" step="0.01" min="0.01" /></div>
+        <div class="col-md-4"><label asp-for="RelacionFocal" class="form-label"></label><input asp-for="RelacionFocal" class="form-control" type="number" step="0.1" min="0" /></div>
+        <div class="col-md-4"><label asp-for="DistanciaFocal" class="form-label"></label><input asp-for="DistanciaFocal" class="form-control" type="number" step="0.01" min="0" /></div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-6"><label asp-for="Peso" class="form-label"></label><input asp-for="Peso" class="form-control" type="number" step="0.01" min="0" /></div>
+        <div class="col-md-6"><label asp-for="CantidadDisponible" class="form-label"></label><input asp-for="CantidadDisponible" class="form-control" type="number" min="0" /></div>
+    </div>
+    <div class="d-flex gap-2"><button type="submit" class="btn btn-primary">Guardar cambios</button><a asp-action="Index" asp-route-tipo="@tipo" class="btn btn-outline-secondary">Cancelar</a></div>
+</form>
+</div></div></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

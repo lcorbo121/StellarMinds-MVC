@@ -1,0 +1,45 @@
+@{
+    ViewData["Title"] = "Socios por telescopio";
+    var telescopios = (List<System.Text.Json.JsonElement>)(ViewBag.Telescopios ?? new List<System.Text.Json.JsonElement>());
+}
+<div class="d-flex justify-content-between align-items-center mb-3"><h2>Socios por telescopio</h2></div>
+<div class="row"><div class="col-md-5"><div class="card shadow-sm mb-3"><div class="card-body">
+    <label for="selectTelescopio" class="form-label fw-semibold">Seleccionar telescopio</label>
+    <select id="selectTelescopio" class="form-select">
+        <option value="">-- Seleccione un telescopio --</option>
+        @foreach (var t in telescopios) {
+            var id = t.TryGetProperty("id", out var ip) ? ip.GetInt32() : 0;
+            var marca = t.TryGetProperty("marca", out var mp) ? mp.GetString() : "";
+            var modelo = t.TryGetProperty("modelo", out var modp) ? modp.GetString() : "";
+            <option value="@id">@marca @modelo</option>
+        }
+    </select>
+</div></div></div></div>
+<div id="contenedorSocios" class="d-none">
+    <h5 class="mb-3">Socios que solicitaron este telescopio</h5>
+    <div id="sinSocios" class="alert alert-info d-none">Ningún socio ha solicitado este telescopio.</div>
+    <div class="table-responsive"><table class="table table-striped align-middle" id="tablaSocios">
+        <thead class="table-dark"><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Usuario</th></tr></thead>
+        <tbody id="cuerpoSocios"></tbody>
+    </table></div>
+</div>
+@section Scripts {
+<script>
+    document.getElementById('selectTelescopio').addEventListener('change', async function() {
+        const id = this.value;
+        const contenedor = document.getElementById('contenedorSocios');
+        const cuerpo = document.getElementById('cuerpoSocios');
+        const sinSocios = document.getElementById('sinSocios');
+        if (!id) { contenedor.classList.add('d-none'); return; }
+        cuerpo.innerHTML = '<tr><td colspan="4" class="text-center">Cargando...</td></tr>';
+        contenedor.classList.remove('d-none');
+        try {
+            const resp = await fetch(`/Prestamos/SociosDe?telescopioId=${id}`);
+            const socios = await resp.json();
+            cuerpo.innerHTML = '';
+            if (!socios || socios.length === 0) { sinSocios.classList.remove('d-none'); }
+            else { sinSocios.classList.add('d-none'); socios.forEach(s => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${s.id??'—'}</td><td>${s.nombreCompleto??'—'}</td><td>${s.email??'—'}</td><td>${s.userName??'—'}</td>`; cuerpo.appendChild(tr); }); }
+        } catch(e) { cuerpo.innerHTML = '<tr><td colspan="4" class="text-danger">Error al cargar los datos.</td></tr>'; }
+    });
+</script>
+}

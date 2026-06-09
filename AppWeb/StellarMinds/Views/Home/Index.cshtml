@@ -1,8 +1,58 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Inicio";
+    var userName = Context.Session.GetString("userName") ?? "";
+    var rol      = Context.Session.GetString("rol") ?? "";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="mb-4">
+    <h2 class="mb-1">Bienvenido, <span class="text-primary">@userName</span></h2>
+    <p class="text-muted mb-0"><span class="badge bg-secondary">@rol</span> &nbsp;Sistema de gestión — StellarMinds</p>
 </div>
+
+@if (rol == "Administrador")
+{
+    <div class="row g-3">
+        <div class="col-12"><h5 class="text-muted fw-normal border-bottom pb-2">Socios</h5></div>
+        <div class="col-sm-6 col-md-4">
+            <a asp-controller="Socios" asp-action="Create" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 card-accion"><div class="card-body d-flex align-items-start gap-3">
+                    <span class="fs-2">👤</span><div><h6 class="card-title mb-1">Registrar socio</h6><p class="card-text text-muted small mb-0">Dar de alta un nuevo socio, coordinador o administrador.</p></div>
+                </div></div>
+            </a>
+        </div>
+        <div class="col-12 mt-2"><h5 class="text-muted fw-normal border-bottom pb-2">Equipos</h5></div>
+        <div class="col-sm-6 col-md-3"><a asp-controller="Equipos" asp-action="Index" asp-route-tipo="telescopios" class="text-decoration-none"><div class="card h-100 shadow-sm border-0 card-accion"><div class="card-body d-flex align-items-start gap-3"><span class="fs-2">🔭</span><div><h6 class="card-title mb-1">Telescopios</h6><p class="card-text text-muted small mb-0">Gestionar stock y datos técnicos.</p></div></div></div></a></div>
+        <div class="col-sm-6 col-md-3"><a asp-controller="Equipos" asp-action="Index" asp-route-tipo="monturas" class="text-decoration-none"><div class="card h-100 shadow-sm border-0 card-accion"><div class="card-body d-flex align-items-start gap-3"><span class="fs-2">🔩</span><div><h6 class="card-title mb-1">Monturas</h6><p class="card-text text-muted small mb-0">Gestionar monturas y carga útil.</p></div></div></div></a></div>
+        <div class="col-sm-6 col-md-3"><a asp-controller="Equipos" asp-action="Index" asp-route-tipo="camaras" class="text-decoration-none"><div class="card h-100 shadow-sm border-0 card-accion"><div class="card-body d-flex align-items-start gap-3"><span class="fs-2">📷</span><div><h6 class="card-title mb-1">Cámaras</h6><p class="card-text text-muted small mb-0">Gestionar cámaras astronómicas.</p></div></div></div></a></div>
+        <div class="col-sm-6 col-md-3"><a asp-controller="Equipos" asp-action="Index" asp-route-tipo="oculares" class="text-decoration-none"><div class="card h-100 shadow-sm border-0 card-accion"><div class="card-body d-flex align-items-start gap-3"><span class="fs-2">🔬</span><div><h6 class="card-title mb-1">Oculares</h6><p class="card-text text-muted small mb-0">Gestionar oculares y ángulos de visión.</p></div></div></div></a></div>
+        <div class="col-12 mt-2"><h5 class="text-muted fw-normal border-bottom pb-2">Consultas</h5></div>
+        <div class="col-sm-6 col-md-4"><a asp-controller="Prestamos" asp-action="SociosPorTelescopio" class="text-decoration-none"><div class="card h-100 shadow-sm border-0 card-accion"><div class="card-body d-flex align-items-start gap-3"><span class="fs-2">📋</span><div><h6 class="card-title mb-1">Socios por telescopio</h6><p class="card-text text-muted small mb-0">Ver qué socios solicitaron cada telescopio.</p></div></div></div></a></div>
+        <div class="col-sm-6 col-md-4"><a asp-controller="Prestamos" asp-action="Auditoria" class="text-decoration-none"><div class="card h-100 shadow-sm border-0 card-accion"><div class="card-body d-flex align-items-start gap-3"><span class="fs-2">🗂️</span><div><h6 class="card-title mb-1">Auditoría de préstamos</h6><p class="card-text text-muted small mb-0">Historial de altas y devoluciones por coordinador.</p></div></div></div></a></div>
+        <div class="col-sm-6 col-md-4"><a asp-controller="Observaciones" asp-action="Ranking" class="text-decoration-none"><div class="card h-100 shadow-sm border-0 card-accion"><div class="card-body d-flex align-items-start gap-3"><span class="fs-2">🌠</span><div><h6 class="card-title mb-1">Ranking de objetos celestes</h6><p class="card-text text-muted small mb-0">Los objetos más observados por los socios.</p></div></div></div></a></div>
+    </div>
+}
+@if (rol == "Coordinador")
+{
+    <div class="row g-3">
+        <div class="col-12"><h5 class="text-muted fw-normal border-bottom pb-2">Préstamos</h5></div>
+        <div class="col-sm-6 col-md-4"><a asp-controller="Prestamos" asp-action="Create" class="text-decoration-none"><div class="card h-100 shadow-sm border-0 card-accion"><div class="card-body d-flex align-items-start gap-3"><span class="fs-2">📦</span><div><h6 class="card-title mb-1">Registrar préstamo</h6><p class="card-text text-muted small mb-0">Asignar equipamiento a un socio.</p></div></div></div></a></div>
+        <div class="col-sm-6 col-md-4"><a asp-controller="Prestamos" asp-action="Devolucion" class="text-decoration-none"><div class="card h-100 shadow-sm border-0 card-accion"><div class="card-body d-flex align-items-start gap-3"><span class="fs-2">↩️</span><div><h6 class="card-title mb-1">Registrar devolución</h6><p class="card-text text-muted small mb-0">Procesar la devolución de un préstamo activo.</p></div></div></div></a></div>
+        <div class="col-12 mt-2"><h5 class="text-muted fw-normal border-bottom pb-2">Consultas</h5></div>
+        <div class="col-sm-6 col-md-4"><a asp-controller="Prestamos" asp-action="SociosPorTelescopio" class="text-decoration-none"><div class="card h-100 shadow-sm border-0 card-accion"><div class="card-body d-flex align-items-start gap-3"><span class="fs-2">📋</span><div><h6 class="card-title mb-1">Socios por telescopio</h6><p class="card-text text-muted small mb-0">Ver qué socios solicitaron cada telescopio.</p></div></div></div></a></div>
+        <div class="col-sm-6 col-md-4"><a asp-controller="Observaciones" asp-action="Ranking" class="text-decoration-none"><div class="card h-100 shadow-sm border-0 card-accion"><div class="card-body d-flex align-items-start gap-3"><span class="fs-2">🌠</span><div><h6 class="card-title mb-1">Ranking de objetos celestes</h6><p class="card-text text-muted small mb-0">Los objetos más observados por los socios.</p></div></div></div></a></div>
+    </div>
+}
+@if (rol == "Socio")
+{
+    <div class="row g-3">
+        <div class="col-12"><h5 class="text-muted fw-normal border-bottom pb-2">Mis acciones</h5></div>
+        <div class="col-sm-6 col-md-4"><a asp-controller="Observaciones" asp-action="Create" class="text-decoration-none"><div class="card h-100 shadow-sm border-0 card-accion"><div class="card-body d-flex align-items-start gap-3"><span class="fs-2">🌌</span><div><h6 class="card-title mb-1">Registrar observación</h6><p class="card-text text-muted small mb-0">Registrar una sesión de observación o astrofotografía.</p></div></div></div></a></div>
+        <div class="col-sm-6 col-md-4"><a asp-controller="Prestamos" asp-action="MisPrestamos" class="text-decoration-none"><div class="card h-100 shadow-sm border-0 card-accion"><div class="card-body d-flex align-items-start gap-3"><span class="fs-2">📦</span><div><h6 class="card-title mb-1">Mis préstamos</h6><p class="card-text text-muted small mb-0">Consultar el historial de préstamos por mes.</p></div></div></div></a></div>
+        <div class="col-sm-6 col-md-4"><a asp-controller="Observaciones" asp-action="Ranking" class="text-decoration-none"><div class="card h-100 shadow-sm border-0 card-accion"><div class="card-body d-flex align-items-start gap-3"><span class="fs-2">🌠</span><div><h6 class="card-title mb-1">Ranking de objetos celestes</h6><p class="card-text text-muted small mb-0">Los objetos más observados por la comunidad.</p></div></div></div></a></div>
+    </div>
+}
+
+<style>
+    .card-accion { transition: transform .15s ease, box-shadow .15s ease; cursor: pointer; }
+    .card-accion:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important; }
+</style>

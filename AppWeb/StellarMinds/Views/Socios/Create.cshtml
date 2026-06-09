@@ -1,0 +1,41 @@
+@model StellarMinds.Models.Socios.SocioViewModel
+@{ ViewData["Title"] = "Registrar socio"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3"><h2>Registrar nuevo socio</h2></div>
+
+@if (TempData["Exito"] != null) { <div class="alert alert-success alert-dismissible fade show">@TempData["Exito"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+
+<div class="row"><div class="col-md-7"><div class="card shadow-sm"><div class="card-body">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+        { <div class="alert alert-danger"><ul class="mb-0">@foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors)) { <li>@e.ErrorMessage</li> }</ul></div> }
+        <div class="row mb-3">
+            <div class="col-md-6"><label asp-for="FullName" class="form-label"></label><input asp-for="FullName" class="form-control" /><span asp-validation-for="FullName" class="text-danger small"></span></div>
+            <div class="col-md-6"><label asp-for="UserName" class="form-label"></label><input asp-for="UserName" class="form-control" /><span asp-validation-for="UserName" class="text-danger small"></span></div>
+        </div>
+        <div class="mb-3"><label asp-for="Email" class="form-label"></label><input asp-for="Email" class="form-control" type="email" /><span asp-validation-for="Email" class="text-danger small"></span></div>
+        <div class="mb-3"><label asp-for="Password" class="form-label"></label><input asp-for="Password" class="form-control" type="password" /><span asp-validation-for="Password" class="text-danger small"></span></div>
+        <div class="mb-3"><label asp-for="PhoneNumber" class="form-label"></label><input asp-for="PhoneNumber" class="form-control" /><span asp-validation-for="PhoneNumber" class="text-danger small"></span></div>
+        <hr /><h6 class="text-muted mb-3">Dirección</h6>
+        <div class="row mb-3">
+            <div class="col-md-6"><label asp-for="Calle" class="form-label"></label><input asp-for="Calle" class="form-control" /><span asp-validation-for="Calle" class="text-danger small"></span></div>
+            <div class="col-md-3"><label asp-for="NumeroPuerta" class="form-label"></label><input asp-for="NumeroPuerta" class="form-control" type="number" min="1" /></div>
+            <div class="col-md-3"><label asp-for="Apartamento" class="form-label"></label><input asp-for="Apartamento" class="form-control" type="number" min="0" /></div>
+        </div>
+        <div class="mb-3">
+            <label asp-for="RolNombre" class="form-label"></label>
+            <select asp-for="RolNombre" class="form-select">
+                <option value="Socio">Socio</option>
+                <option value="Coordinador">Coordinador</option>
+                <option value="Administrador">Administrador</option>
+            </select>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Registrar socio</button>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+    </form>
+</div></div></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

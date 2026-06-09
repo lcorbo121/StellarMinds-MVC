@@ -1,0 +1,28 @@
+@model StellarMinds.Models.Equipos.MonturaViewModel
+@{ ViewData["Title"] = "Agregar montura"; var tipo = (string)(ViewBag.Tipo ?? "monturas"); }
+<div class="d-flex justify-content-between align-items-center mb-3"><h2>Agregar montura</h2><a asp-action="Index" asp-route-tipo="@tipo" class="btn btn-outline-secondary">Volver</a></div>
+<div class="row"><div class="col-md-7"><div class="card shadow-sm"><div class="card-body">
+<form asp-action="CreateMontura" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="tipo" value="@tipo" />
+    <div class="row mb-3">
+        <div class="col-md-6"><label asp-for="Marca" class="form-label"></label><input asp-for="Marca" class="form-control" /></div>
+        <div class="col-md-6"><label asp-for="Modelo" class="form-label"></label><input asp-for="Modelo" class="form-control" /></div>
+    </div>
+    <div class="mb-3">
+        <label asp-for="TipoMontura" class="form-label"></label>
+        <select asp-for="TipoMontura" class="form-select">
+            <option value="Ecuatorial">Ecuatorial</option>
+            <option value="Alt-Azimutal">Alt-Azimutal</option>
+            <option value="Híbrida">Híbrida</option>
+        </select>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-6"><label asp-for="CargaUtil" class="form-label"></label><input asp-for="CargaUtil" class="form-control" type="number" step="0.01" min="0.01" /></div>
+        <div class="col-md-6"><label asp-for="CantidadDisponible" class="form-label"></label><input asp-for="CantidadDisponible" class="form-control" type="number" min="0" /></div>
+    </div>
+    <div class="mb-3 form-check"><input asp-for="EsGoTo" class="form-check-input" type="checkbox" /><label asp-for="EsGoTo" class="form-check-label"></label></div>
+    <div class="d-flex gap-2"><button type="submit" class="btn btn-primary">Guardar</button><a asp-action="Index" asp-route-tipo="@tipo" class="btn btn-outline-secondary">Cancelar</a></div>
+</form>
+</div></div></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

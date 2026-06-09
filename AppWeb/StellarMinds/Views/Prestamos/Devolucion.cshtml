@@ -1,0 +1,77 @@
+@{
+    ViewData["Title"] = "Registrar devolución";
+    var socios = (List<System.Text.Json.JsonElement>)(ViewBag.Socios ?? new List<System.Text.Json.JsonElement>());
+}
+<div class="d-flex justify-content-between align-items-center mb-3"><h2>Registrar devolución</h2></div>
+@if (TempData["Exito"] != null) { <div class="alert alert-success alert-dismissible fade show">@TempData["Exito"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+<div class="row"><div class="col-md-7"><div class="card shadow-sm"><div class="card-body">
+    <div class="mb-3">
+        <label for="selectSocio" class="form-label fw-semibold">Seleccionar socio</label>
+        <select id="selectSocio" class="form-select">
+            <option value="">-- Seleccione un socio --</option>
+            @foreach (var socio in socios)
+            {
+                var id = socio.TryGetProperty("id", out var ip) ? ip.GetInt32() : 0;
+                var nombre = socio.TryGetProperty("nombreCompleto", out var np) ? np.GetString() : id.ToString();
+                <option value="@id">@nombre</option>
+            }
+        </select>
+    </div>
+    <div class="mb-3" id="contenedorPrestamos" style="display:none">
+        <label for="selectPrestamo" class="form-label fw-semibold">Préstamos activos</label>
+        <select id="selectPrestamo" class="form-select"><option value="">-- Seleccione un préstamo --</option></select>
+        <div id="sinPrestamos" class="form-text text-warning d-none">Este socio no tiene préstamos vigentes.</div>
+    </div>
+    <div id="detallePrestamo" class="mb-3 d-none"><div class="card bg-light"><div class="card-body py-2"><small class="text-muted">Detalle</small><div id="detalleContenido"></div></div></div></div>
+    <form asp-action="Devolucion" method="post" id="formDevolucion">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="prestamoId" id="hiddenPrestamoId" value="" />
+        <button type="submit" id="btnDevolucion" class="btn btn-warning" disabled>Confirmar devolución</button>
+    </form>
+</div></div></div></div>
+@section Scripts {
+<script>
+    const selSocio = document.getElementById('selectSocio');
+    const selPrestamo = document.getElementById('selectPrestamo');
+    const contenedor = document.getElementById('contenedorPrestamos');
+    const sinPrestamos = document.getElementById('sinPrestamos');
+    const detalle = document.getElementById('detallePrestamo');
+    const detalleContenido = document.getElementById('detalleContenido');
+    const hiddenId = document.getElementById('hiddenPrestamoId');
+    const btn = document.getElementById('btnDevolucion');
+
+    selSocio.addEventListener('change', async function() {
+        selPrestamo.innerHTML = '<option value="">-- Cargando... --</option>';
+        contenedor.style.display = 'none'; detalle.classList.add('d-none');
+        hiddenId.value = ''; btn.disabled = true;
+        if (!this.value) return;
+        try {
+            const resp = await fetch(`/Prestamos/PrestamosEnPrestamo?socioId=${this.value}`);
+            const prestamos = await resp.json();
+            selPrestamo.innerHTML = '<option value="">-- Seleccione un préstamo --</option>';
+            contenedor.style.display = 'block';
+            if (!prestamos || prestamos.length === 0) { sinPrestamos.classList.remove('d-none'); }
+            else {
+                sinPrestamos.classList.add('d-none');
+                prestamos.forEach(p => {
+                    const o = document.createElement('option'); o.value = p.id;
+                    o.textContent = `#${p.id} - ${p.telescopioNombre} (${new Date(p.fechaInicio).toLocaleDateString('es-UY')} → ${new Date(p.fechaFin).toLocaleDateString('es-UY')})`;
+                    o.dataset.detalle = JSON.stringify(p); selPrestamo.appendChild(o);
+                });
+            }
+        } catch(e) { selPrestamo.innerHTML = '<option value="">Error al cargar</option>'; }
+    });
+
+    selPrestamo.addEventListener('change', function() {
+        const opt = this.options[this.selectedIndex];
+        if (!this.value || !opt?.dataset?.detalle) { detalle.classList.add('d-none'); hiddenId.value=''; btn.disabled=true; return; }
+        const p = JSON.parse(opt.dataset.detalle);
+        hiddenId.value = p.id; btn.disabled = false;
+        const inicio = new Date(p.fechaInicio).toLocaleDateString('es-UY');
+        const fin = new Date(p.fechaFin).toLocaleDateString('es-UY');
+        detalleContenido.innerHTML = `<p class="mb-1 mt-1"><strong>Telescopio:</strong> ${p.telescopioNombre}</p><p class="mb-1"><strong>Montura:</strong> ${p.monturaNombre || '—'}</p>${p.camaraNombre?`<p class="mb-1"><strong>Cámara:</strong> ${p.camaraNombre}</p>`:''} ${p.ocularNombre?`<p class="mb-1"><strong>Ocular:</strong> ${p.ocularNombre}</p>`:''}<p class="mb-0"><strong>Período:</strong> ${inicio} → ${fin}</p>`;
+        detalle.classList.remove('d-none');
+    });
+</script>
+}

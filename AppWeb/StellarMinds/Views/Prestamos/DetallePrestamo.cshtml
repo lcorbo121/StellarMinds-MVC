@@ -1,0 +1,23 @@
+@{
+    ViewData["Title"] = "Detalle de auditoría";
+    var auditoria = (List<System.Text.Json.JsonElement>)(ViewBag.Auditoria ?? new List<System.Text.Json.JsonElement>());
+    var prestamoId = (int)(ViewBag.PrestamoId ?? 0);
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Auditoría del préstamo <span class="text-muted fs-4">#@prestamoId</span></h2>
+    <a asp-action="Auditoria" class="btn btn-outline-secondary">Volver</a>
+</div>
+<div class="table-responsive"><table class="table table-striped table-hover align-middle">
+    <thead class="table-dark"><tr><th>ID</th><th>Coordinador</th><th>Acción</th><th>Fecha y hora</th></tr></thead>
+    <tbody>
+    @if (!auditoria.Any()) { <tr><td colspan="4" class="text-center text-muted">No hay registros de auditoría para este préstamo.</td></tr> }
+    else { @foreach (var a in auditoria) {
+        var aId = a.TryGetProperty("id", out var ip) ? ip.GetInt32() : 0;
+        var coord = a.TryGetProperty("coordinadorNombre", out var cp) ? cp.GetString() : "—";
+        var accion = a.TryGetProperty("accion", out var ap) ? ap.GetString() : "—";
+        var fecha = a.TryGetProperty("fechaAccion", out var fp) ? fp.GetString() : "—";
+        DateTime fd; var fechaF = DateTime.TryParse(fecha, out fd) ? fd.ToString("dd/MM/yyyy HH:mm:ss") : fecha;
+        <tr><td>@aId</td><td>@coord</td><td>@accion</td><td>@fechaF</td></tr>
+    } }
+    </tbody>
+</table></div>

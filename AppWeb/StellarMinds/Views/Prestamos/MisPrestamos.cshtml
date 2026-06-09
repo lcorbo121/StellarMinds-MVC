@@ -1,0 +1,41 @@
+@model StellarMinds.Models.Prestamos.FiltroFechaViewModel
+@{
+    ViewData["Title"] = "Mis préstamos";
+    var prestamos = (List<StellarMinds.Models.Prestamos.PrestamoListaItem>)(ViewBag.Prestamos ?? new List<StellarMinds.Models.Prestamos.PrestamoListaItem>());
+    var sinResultados = (string?)ViewBag.SinResultados;
+}
+<div class="d-flex justify-content-between align-items-center mb-3"><h2>Mis préstamos</h2></div>
+@if (TempData["Exito"] != null) { <div class="alert alert-success alert-dismissible fade show">@TempData["Exito"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+<div class="card shadow-sm mb-4"><div class="card-body py-3">
+    <form asp-action="MisPrestamos" method="get" class="row g-2 align-items-end">
+        <div class="col-auto">
+            <label asp-for="Mes" class="form-label mb-1"></label>
+            <select asp-for="Mes" class="form-select" style="width:140px">
+                @for (int m = 1; m <= 12; m++) {
+                    var nombres = new[]{"Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"};
+                    if (Model.Mes == m) { <option value="@m" selected>@nombres[m-1]</option> } else { <option value="@m">@nombres[m-1]</option> }
+                }
+            </select>
+        </div>
+        <div class="col-auto"><label asp-for="Anio" class="form-label mb-1"></label><input asp-for="Anio" class="form-control" type="number" min="2020" max="2099" style="width:100px" /></div>
+        <div class="col-auto"><button type="submit" class="btn btn-primary">Filtrar</button></div>
+    </form>
+</div></div>
+@if (sinResultados != null) { <div class="alert alert-info">@sinResultados</div> }
+else
+{
+    <div class="table-responsive"><table class="table table-striped table-hover align-middle">
+        <thead class="table-dark"><tr><th>ID</th><th>Telescopio</th><th>Montura</th><th>Cámara</th><th>Ocular</th><th>Fecha inicio</th><th>Fecha fin</th><th>Estado</th></tr></thead>
+        <tbody>
+        @if (!prestamos.Any()) { <tr><td colspan="8" class="text-center text-muted">No se encontraron préstamos.</td></tr> }
+        else { @foreach (var p in prestamos) {
+            <tr class="@(p.Atrasado ? "table-danger" : "")">
+                <td>@p.Id</td><td>@p.TelescopioNombre</td><td>@p.MonturaNombre</td>
+                <td>@(p.CamaraNombre ?? "—")</td><td>@(p.OcularNombre ?? "—")</td>
+                <td>@p.FechaInicio.ToString("dd/MM/yyyy")</td><td>@p.FechaFin.ToString("dd/MM/yyyy")</td>
+                <td>@p.Estado @if (p.Atrasado) { <span class="badge bg-danger ms-1">Atrasado</span> }</td>
+            </tr>
+        } }
+        </tbody>
+    </table></div>
+}

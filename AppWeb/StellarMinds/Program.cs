@@ -8,41 +8,36 @@ namespace StellarMinds
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
             builder.Services.AddControllersWithViews();
-            //Sesiones
-            builder.Services.AddSession();
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddSession(options =>
+            {
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
 
-            // Contenedor de inyeccion de dependencias
-
-            // Definine el cliente HTTP para consumir la API
-            builder.Services.AddHttpClient("Api", c => c.BaseAddress = new Uri("https://localhost:7158/"));
-
-            // Registrar auxiliar http (síncrono simple)
+            var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7158/";
+            builder.Services.AddHttpClient("Api", c => c.BaseAddress = new Uri(apiBaseUrl));
             builder.Services.AddScoped<AuxiliarClienteHttp>();
-
-
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
-            app.UseRouting();
+            if (app.Environment.IsDevelopment())
+                app.UseHttpsRedirection();
 
+            app.UseRouting();
+            app.UseStaticFiles();
             app.UseAuthorization();
             app.UseSession();
-            app.MapStaticAssets();
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Usuarios}/{action=Index}/{id?}")
-                .WithStaticAssets();
+                pattern: "{controller=Usuarios}/{action=Index}/{id?}");
 
             app.Run();
         }

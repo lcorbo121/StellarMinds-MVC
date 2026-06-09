@@ -1,0 +1,159 @@
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Registrar observación";
+    var esAdmin = Context.Session.GetString("rol") == "Administrador";
+}
+<div class="d-flex justify-content-between align-items-center mb-3"><h2>Registrar observación</h2></div>
+@if (TempData["Exito"] != null) { <div class="alert alert-success alert-dismissible fade show">@TempData["Exito"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+@if (TempData["ResultadoIA"] is string resultadoJson)
+{
+    try {
+        using var doc = JsonDocument.Parse(resultadoJson);
+        var root = doc.RootElement;
+        var indicador = root.TryGetProperty("indicadorIA", out var ind) ? ind.GetString() : "";
+        var detalle = root.TryGetProperty("detalleIA", out var det) ? det.GetString() : "";
+        var css = indicador switch { "IDEAL" => "success", "ADECUADO" => "warning", "NO RECOMENDABLE" => "danger", _ => "secondary" };
+        <div class="alert alert-@css alert-dismissible fade show">
+            <strong>Evaluación IA: @indicador</strong>
+            @if (!string.IsNullOrEmpty(detalle)) { <p class="mb-0 mt-1">@detalle</p> }
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    } catch { }
+}
+@if (!esAdmin && (ViewBag.PrestamosJson ?? "[]") == "[]")
+{
+    <div class="alert alert-warning">No tenés préstamos vigentes. Para registrar una observación necesitás tener un préstamo activo.</div>
+}
+else
+{
+    <div class="row"><div class="col-md-7">
+        <div class="card shadow-sm"><div class="card-body">
+            @if (esAdmin)
+            {
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Socio</label>
+                    <select id="selectSocio" class="form-select"><option value="">-- Seleccione un socio --</option></select>
+                </div>
+            }
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Préstamo vigente</label>
+                <select id="selectPrestamo" class="form-select" required><option value="">-- Seleccione un préstamo --</option></select>
+                <div id="detallePrestamo" class="form-text text-muted mt-1"></div>
+            </div>
+            <div class="mb-3"><label class="form-label fw-semibold">Objeto celeste</label><select id="selectObjeto" class="form-select" required><option value="">-- Seleccione un objeto --</option></select></div>
+            <div class="mb-3"><label class="form-label fw-semibold">Fecha de observación</label><input id="inputFecha" type="date" class="form-control" required max="@DateTime.Today.ToString("yyyy-MM-dd")" /></div>
+            <div class="mb-3"><label class="form-label fw-semibold">Notas <span class="text-muted fw-normal">(opcional)</span></label><textarea id="inputNotas" class="form-control" rows="3" maxlength="1000"></textarea></div>
+            <div class="d-flex gap-2 align-items-center">
+                <button type="button" id="btnEvaluar" class="btn btn-secondary" onclick="evaluarEquipamiento()">Evaluar equipamiento</button>
+                <span id="loadingEvaluar" class="text-muted small d-none">Consultando IA...</span>
+            </div>
+        </div></div>
+        <div id="panelResultado" class="card shadow-sm mt-3 d-none"><div class="card-body">
+            <h6 class="fw-semibold mb-2">Resultado de la evaluación IA</h6>
+            <div id="alertaIA" class="alert mb-3"></div>
+            <form asp-action="Create" method="post" id="formConfirmar">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="hiddenPrestamoId" name="prestamoId" />
+                <input type="hidden" id="hiddenObjetoId" name="objetoCelesteId" />
+                <input type="hidden" id="hiddenFecha" name="fechaObservacion" />
+                <input type="hidden" id="hiddenNotas" name="notas" />
+                <input type="hidden" id="hiddenIndicadorIA" name="indicadorIA" />
+                <input type="hidden" id="hiddenDetalleIA" name="detalleIA" />
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Confirmar alta</button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="ocultarResultado()">Modificar y re-evaluar</button>
+                </div>
+            </form>
+        </div></div>
+    </div></div>
+}
+@section Scripts {
+<script>
+    const prestamosIniciales = @Html.Raw(ViewBag.PrestamosJson ?? "[]");
+    const socios  = @Html.Raw(ViewBag.SociosJson ?? "[]");
+    const objetos = @Html.Raw(ViewBag.ObjetosJson ?? "[]");
+    const hoy     = '@DateTime.Today.ToString("yyyy-MM-dd")';
+    const esAdmin = @(esAdmin ? "true" : "false");
+
+    const selPrestamo = document.getElementById('selectPrestamo');
+    const detallePrestamo = document.getElementById('detallePrestamo');
+    const inputFecha = document.getElementById('inputFecha');
+
+    function cargarPrestamos(lista) {
+        selPrestamo.innerHTML = '<option value="">-- Seleccione un préstamo --</option>';
+        ocultarResultado();
+        lista.forEach(p => {
+            const o = document.createElement('option'); o.value = p.id;
+            o.textContent = `Préstamo #${p.id} - ${p.telescopioNombre ?? 'Telescopio'} (hasta ${p.fechaFin?.substring(0,10) ?? ''})`;
+            o.dataset.prestamo = JSON.stringify(p); selPrestamo.appendChild(o);
+        });
+    }
+
+    if (esAdmin) {
+        const selSocio = document.getElementById('selectSocio');
+        socios.forEach(s => { const o = document.createElement('option'); o.value = s.id; o.textContent = s.nombreCompleto || s.userName || s.id; selSocio.appendChild(o); });
+        selSocio.addEventListener('change', async function() {
+            cargarPrestamos([]);
+            if (!this.value) return;
+            try { const resp = await fetch(`/Prestamos/PrestamosEnPrestamo?socioId=${this.value}`); cargarPrestamos(await resp.json()); } catch {}
+        });
+    } else {
+        cargarPrestamos(prestamosIniciales);
+    }
+
+    selPrestamo.addEventListener('change', function() {
+        ocultarResultado();
+        const opt = this.options[this.selectedIndex];
+        if (!this.value || !opt?.dataset?.prestamo) { detallePrestamo.textContent=''; inputFecha.removeAttribute('min'); inputFecha.setAttribute('max',hoy); return; }
+        const p = JSON.parse(opt.dataset.prestamo);
+        const inicio = p.fechaInicio?.substring(0,10) ?? '';
+        const fin = p.fechaFin?.substring(0,10) ?? '';
+        detallePrestamo.textContent = `Vigente: ${inicio} al ${fin}${p.monturaNombre?' | Montura: '+p.monturaNombre:''}${p.camaraNombre?' | Cámara: '+p.camaraNombre:''}${p.ocularNombre?' | Ocular: '+p.ocularNombre:''}`;
+        inputFecha.setAttribute('min', inicio);
+        inputFecha.setAttribute('max', fin < hoy ? fin : hoy);
+    });
+
+    objetos.forEach(o => { const opt = document.createElement('option'); opt.value=o.id; opt.textContent=`${o.nombre} (${o.tipo})`; document.getElementById('selectObjeto').appendChild(opt); });
+    document.getElementById('selectObjeto').addEventListener('change', ocultarResultado);
+
+    async function evaluarEquipamiento() {
+        const prestamoId = selPrestamo.value;
+        const objetoCelesteId = document.getElementById('selectObjeto').value;
+        const fecha = inputFecha.value;
+        if (!prestamoId) { alert('Seleccione un préstamo.'); return; }
+        if (!objetoCelesteId) { alert('Seleccione un objeto celeste.'); return; }
+        if (!fecha) { alert('Ingrese la fecha de observación.'); return; }
+        const btn = document.getElementById('btnEvaluar');
+        const loading = document.getElementById('loadingEvaluar');
+        btn.disabled = true; loading.classList.remove('d-none');
+        try {
+            const token = document.querySelector('#formConfirmar input[name="__RequestVerificationToken"]')?.value ?? '';
+            const resp = await fetch('/Observaciones/Evaluar', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:`prestamoId=${prestamoId}&objetoCelesteId=${objetoCelesteId}&__RequestVerificationToken=${encodeURIComponent(token)}` });
+            if (!resp.ok) { alert('Error: ' + await resp.text()); return; }
+            const data = await resp.json();
+            const indicador = data.indicadorIA ?? data.indicador ?? data.Indicador ?? '';
+            const detalle = data.detalleIA ?? data.detalle ?? data.Detalle ?? '';
+            mostrarResultado(indicador, detalle);
+            document.getElementById('hiddenPrestamoId').value = prestamoId;
+            document.getElementById('hiddenObjetoId').value = objetoCelesteId;
+            document.getElementById('hiddenFecha').value = fecha;
+            document.getElementById('hiddenNotas').value = document.getElementById('inputNotas').value;
+            document.getElementById('hiddenIndicadorIA').value = indicador;
+            document.getElementById('hiddenDetalleIA').value = detalle;
+        } catch(e) { alert('Error al consultar la IA. Intente nuevamente.'); }
+        finally { btn.disabled=false; loading.classList.add('d-none'); }
+    }
+
+    function mostrarResultado(indicador, detalle) {
+        const alerta = document.getElementById('alertaIA');
+        const clases = {'IDEAL':'success','ADECUADO':'warning','NO RECOMENDABLE':'danger'};
+        alerta.className = `alert alert-${clases[indicador] ?? 'secondary'} mb-3`;
+        alerta.innerHTML = `<strong>Evaluación IA: ${indicador}</strong>${detalle?`<p class="mb-0 mt-1">${detalle}</p>`:''}`;
+        document.getElementById('panelResultado').classList.remove('d-none');
+    }
+
+    function ocultarResultado() { document.getElementById('panelResultado').classList.add('d-none'); }
+</script>
+<partial name="_ValidationScriptsPartial" />
+}
