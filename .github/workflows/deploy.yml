@@ -54,8 +54,14 @@ jobs:
           </configuration>
           EOF
 
-      - name: Crear app_offline.htm para desbloquear archivos en SOMEE
-        run: echo "offline" > ./publish/app_offline.htm
+      - name: Subir app_offline.htm para detener la app antes del deploy
+        run: |
+          echo "offline" > /tmp/app_offline.htm
+          curl -s --user "${{ secrets.FTP_FE_USER }}:${{ secrets.FTP_FE_PASSWORD }}" \
+            -T /tmp/app_offline.htm \
+            "ftp://${{ secrets.FTP_FE_HOST }}/www.335305-364673-MVC.somee.com/app_offline.htm"
+          echo "Esperando 15s para que la app se detenga..."
+          sleep 15
 
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -68,13 +74,11 @@ jobs:
           exclude: |
             **/.git*
             **/.git*/**
+            **/app_offline.htm
 
-      - name: Quitar app_offline.htm para reactivar la app
+      - name: Eliminar app_offline.htm para reactivar la app
         run: |
-          rm ./publish/app_offline.htm
           curl -s --user "${{ secrets.FTP_FE_USER }}:${{ secrets.FTP_FE_PASSWORD }}" \
             -Q "DELE www.335305-364673-MVC.somee.com/app_offline.htm" \
-            "ftp://${{ secrets.FTP_FE_HOST }}" || \
-          curl -s --user "${{ secrets.FTP_FE_USER }}:${{ secrets.FTP_FE_PASSWORD }}" \
-            -X "DELE app_offline.htm" \
-            "ftp://${{ secrets.FTP_FE_HOST }}/www.335305-364673-MVC.somee.com/app_offline.htm" || true
+            "ftp://${{ secrets.FTP_FE_HOST }}" || true
+          echo "App reactivada"
