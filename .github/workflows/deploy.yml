@@ -23,7 +23,14 @@ jobs:
         run: dotnet publish AppWeb/StellarMinds/StellarMinds.csproj -c Release --self-contained true -r win-x64 -o ./publish --no-restore
 
       - name: Fix SqlClient DLL (reemplazar stub por implementación real)
-        run: cp ./publish/runtimes/win/lib/net9.0/Microsoft.Data.SqlClient.dll ./publish/Microsoft.Data.SqlClient.dll || true
+        run: |
+          DLL=$(find ./publish/runtimes/win -name "Microsoft.Data.SqlClient.dll" 2>/dev/null | head -1)
+          if [ -n "$DLL" ]; then
+            cp "$DLL" ./publish/Microsoft.Data.SqlClient.dll
+            echo "Copiado desde: $DLL"
+          else
+            echo "SqlClient DLL no encontrado en runtimes, se omite el paso"
+          fi
 
       - name: Fix web.config (outofprocess para SOMEE)
         run: |
