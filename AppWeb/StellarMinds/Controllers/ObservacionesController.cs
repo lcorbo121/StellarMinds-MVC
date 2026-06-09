@@ -30,8 +30,9 @@ namespace StellarMinds.Controllers
         public IActionResult Evaluar(int prestamoId, int objetoCelesteId)
         {
             if (Token == null) return Json(new { error = "No autorizado" });
-            var resp = _http.EnviarSolicitud("api/observaciones/evaluar", "POST", new { prestamoId, objetoCelesteId }, Token);
+            var resp = _http.EnviarSolicitud("api/observaciones/evaluar", "POST", new { prestamoId, objetoCelesteId }, Token, throwOnError: false);
             var json = _http.ObtenerBody(resp);
+            if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, json);
             return Content(json, "application/json");
         }
 
