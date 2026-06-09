@@ -1,23 +1,116 @@
 @{
-    ViewData["Title"] = "Detalle de auditoría";
-    var auditoria = (List<System.Text.Json.JsonElement>)(ViewBag.Auditoria ?? new List<System.Text.Json.JsonElement>());
+    ViewData["Title"] = "Detalle del préstamo";
+    var auditoria  = (List<System.Text.Json.JsonElement>)(ViewBag.Auditoria ?? new List<System.Text.Json.JsonElement>());
     var prestamoId = (int)(ViewBag.PrestamoId ?? 0);
+    var p          = ViewBag.Prestamo as System.Text.Json.JsonElement?;
+
+    string Str(System.Text.Json.JsonElement el, string key) =>
+        el.TryGetProperty(key, out var v) ? (v.GetString() ?? "—") : "—";
+
+    string EstadoBadge(string estado, bool atrasado)
+    {
+        if (atrasado) return "bg-danger";
+        return estado switch { "DEVUELTO" => "bg-success", _ => "bg-warning text-dark" };
+    }
 }
+
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Auditoría del préstamo <span class="text-muted fs-4">#@prestamoId</span></h2>
-    <a asp-action="Auditoria" class="btn btn-outline-secondary">Volver</a>
+    <h2>Préstamo <span class="text-muted fs-4">#@prestamoId</span></h2>
+    <a asp-action="Auditoria" class="btn btn-outline-secondary">← Volver a auditoría</a>
 </div>
-<div class="table-responsive"><table class="table table-striped table-hover align-middle">
-    <thead class="table-dark"><tr><th>ID</th><th>Coordinador</th><th>Acción</th><th>Fecha y hora</th></tr></thead>
-    <tbody>
-    @if (!auditoria.Any()) { <tr><td colspan="4" class="text-center text-muted">No hay registros de auditoría para este préstamo.</td></tr> }
-    else { @foreach (var a in auditoria) {
-        var aId = a.TryGetProperty("id", out var ip) ? ip.GetInt32() : 0;
-        var coord = a.TryGetProperty("coordinadorNombre", out var cp) ? cp.GetString() : "—";
-        var accion = a.TryGetProperty("accion", out var ap) ? ap.GetString() : "—";
-        var fecha = a.TryGetProperty("fechaAccion", out var fp) ? fp.GetString() : "—";
-        DateTime fd; var fechaF = DateTime.TryParse(fecha, out fd) ? fd.ToString("dd/MM/yyyy HH:mm:ss") : fecha;
-        <tr><td>@aId</td><td>@coord</td><td>@accion</td><td>@fechaF</td></tr>
-    } }
-    </tbody>
-</table></div>
+
+@if (p.HasValue)
+{
+    var estado   = Str(p.Value, "estado");
+    var atrasado = p.Value.TryGetProperty("atrasado", out var av) && av.GetBoolean();
+    var etiqueta = atrasado ? "ATRASADO" : estado;
+
+    var fechaIni = p.Value.TryGetProperty("fechaInicio", out var fi) ? DateTime.Parse(fi.GetString()!).ToString("dd/MM/yyyy") : "—";
+    var fechaFin = p.Value.TryGetProperty("fechaFin",    out var ff) ? DateTime.Parse(ff.GetString()!).ToString("dd/MM/yyyy") : "—";
+
+    var socio     = Str(p.Value, "usuarioNombre");
+    var telescopio = Str(p.Value, "telescopioNombre");
+    var montura   = Str(p.Value, "monturaNombre");
+
+    string? camara = p.Value.TryGetProperty("camaraNombre", out var cn) ? cn.GetString() : null;
+    string? ocular = p.Value.TryGetProperty("ocularNombre", out var on) ? on.GetString() : null;
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">Información del préstamo</span>
+            <span class="badge fs-6 @EstadoBadge(estado, atrasado)">@etiqueta</span>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-sm-6 col-md-4">
+                    <div class="text-muted small">Socio</div>
+                    <div class="fw-semibold">@socio</div>
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <div class="text-muted small">Fecha inicio</div>
+                    <div>@fechaIni</div>
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <div class="text-muted small">Fecha fin</div>
+                    <div class="@(atrasado ? "text-danger fw-semibold" : "")">@fechaFin</div>
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <div class="text-muted small">Telescopio</div>
+                    <div>@telescopio</div>
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <div class="text-muted small">Montura</div>
+                    <div>@montura</div>
+                </div>
+                @if (!string.IsNullOrEmpty(camara))
+                {
+                    <div class="col-sm-6 col-md-4">
+                        <div class="text-muted small">Cámara</div>
+                        <div>@camara</div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(ocular))
+                {
+                    <div class="col-sm-6 col-md-4">
+                        <div class="text-muted small">Ocular</div>
+                        <div>@ocular</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<h5 class="mb-3">Historial de auditoría</h5>
+<div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr><th>#</th><th>Coordinador</th><th>Acción</th><th>Fecha y hora</th></tr>
+        </thead>
+        <tbody>
+        @if (!auditoria.Any())
+        {
+            <tr><td colspan="4" class="text-center text-muted">No hay registros de auditoría para este préstamo.</td></tr>
+        }
+        else
+        {
+            @foreach (var a in auditoria)
+            {
+                var aId    = a.TryGetProperty("id",               out var ip) ? ip.GetInt32()    : 0;
+                var coord  = a.TryGetProperty("coordinadorNombre", out var cp) ? cp.GetString()  : "—";
+                var accion = a.TryGetProperty("accion",            out var ap) ? ap.GetString()  : "—";
+                var fecha  = a.TryGetProperty("fechaAccion",       out var fp) ? fp.GetString()  : "—";
+                DateTime fd;
+                var fechaF = DateTime.TryParse(fecha, out fd) ? fd.ToString("dd/MM/yyyy HH:mm") : fecha;
+                var badgeClass = accion == "DEVOLUCION" ? "bg-success" : "bg-primary";
+                <tr>
+                    <td class="text-muted small">@aId</td>
+                    <td>@coord</td>
+                    <td><span class="badge @badgeClass">@accion</span></td>
+                    <td>@fechaF</td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+</div>
