@@ -1,0 +1,96 @@
+@{
+    ViewData["Title"] = "Usuarios del sistema";
+    var usuarios = (ViewBag.Usuarios as List<System.Text.Json.JsonElement>) ?? new();
+
+    string RolBadgeClass(string rol) => rol switch {
+        "Administrador" => "bg-danger",
+        "Coordinador"   => "bg-warning text-dark",
+        _               => "bg-primary"
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Usuarios del sistema</h2>
+    <div class="d-flex gap-2">
+        <span class="badge bg-danger fs-6">@usuarios.Count(u => u.GetProperty("rol").GetString() == "Administrador") Admin</span>
+        <span class="badge bg-warning text-dark fs-6">@usuarios.Count(u => u.GetProperty("rol").GetString() == "Coordinador") Coord.</span>
+        <span class="badge bg-primary fs-6">@usuarios.Count(u => u.GetProperty("rol").GetString() == "Socio") Socios</span>
+    </div>
+</div>
+
+<div class="mb-3">
+    <input type="text" id="filtroTexto" class="form-control" placeholder="Buscar por nombre, usuario o email..." />
+</div>
+
+<div class="mb-3 d-flex gap-2 flex-wrap" id="filtroRol">
+    <button class="btn btn-sm btn-secondary active" data-rol="">Todos</button>
+    <button class="btn btn-sm btn-danger"  data-rol="Administrador">Administrador</button>
+    <button class="btn btn-sm btn-warning text-dark" data-rol="Coordinador">Coordinador</button>
+    <button class="btn btn-sm btn-primary" data-rol="Socio">Socio</button>
+</div>
+
+@if (!usuarios.Any())
+{
+    <div class="alert alert-info">No hay usuarios registrados.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" id="tablaUsuarios">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Rol</th>
+                    <th>Nombre completo</th>
+                    <th>Usuario</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in usuarios)
+                {
+                    var rol    = u.GetProperty("rol").GetString() ?? "";
+                    var nombre = u.GetProperty("nombreCompleto").GetString() ?? "";
+                    var user   = u.GetProperty("userName").GetString() ?? "";
+                    var email  = u.GetProperty("email").GetString() ?? "";
+                    var id     = u.GetProperty("id").GetInt32();
+                    <tr data-rol="@rol" data-texto="@nombre.ToLower() @user.ToLower() @email.ToLower()">
+                        <td class="text-muted small">@id</td>
+                        <td><span class="badge @RolBadgeClass(rol)">@rol</span></td>
+                        <td>@nombre</td>
+                        <td><code>@user</code></td>
+                        <td class="text-muted small">@email</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section Scripts {
+<script>
+(function () {
+    var rolActivo = '';
+
+    document.getElementById('filtroTexto').addEventListener('input', filtrar);
+
+    document.querySelectorAll('#filtroRol button').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('#filtroRol button').forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            rolActivo = btn.dataset.rol;
+            filtrar();
+        });
+    });
+
+    function filtrar() {
+        var texto = document.getElementById('filtroTexto').value.toLowerCase();
+        document.querySelectorAll('#tablaUsuarios tbody tr').forEach(function (tr) {
+            var matchRol   = !rolActivo || tr.dataset.rol === rolActivo;
+            var matchTexto = !texto    || tr.dataset.texto.includes(texto);
+            tr.style.display = (matchRol && matchTexto) ? '' : 'none';
+        });
+    }
+})();
+</script>
+}

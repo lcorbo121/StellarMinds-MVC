@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using StellarMinds.Models.Socios;
+using System.Text.Json;
 using WebApp.Services.Http;
 
 namespace StellarMinds.Controllers
@@ -22,6 +23,16 @@ namespace StellarMinds.Controllers
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Administrador") return Forbid();
             return View(new SocioViewModel());
+        }
+
+        [HttpGet]
+        public IActionResult ListaTodos()
+        {
+            if (Token == null) return RedirectToAction("Index", "Usuarios");
+            if (Rol != "Administrador") return Forbid();
+            var usuarios = _http.EnviarYDeserializar<List<JsonElement>>("api/usuarios/todos", "GET", token: Token, throwOnError: false) ?? [];
+            ViewBag.Usuarios = usuarios;
+            return View();
         }
 
         [HttpPost, ValidateAntiForgeryToken]
