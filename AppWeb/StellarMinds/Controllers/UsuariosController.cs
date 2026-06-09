@@ -34,7 +34,8 @@ namespace StellarMinds.Controllers
                 var response = _http.EnviarSolicitud(
                     "api/auth/login",
                     "POST",
-                    new { username = model.UserName, password = model.Password }
+                    new { username = model.UserName, password = model.Password },
+                    throwOnError: false
                 );
 
                 if (!response.IsSuccessStatusCode)

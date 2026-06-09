@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script>
+        if (localStorage.getItem('sm-theme') === 'light') document.documentElement.style.setProperty('--pre-theme', 'light');
+    </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - StellarMinds</title>
@@ -83,7 +86,12 @@
                             <a class="nav-link" asp-controller="Observaciones" asp-action="Ranking">Ranking objetos celestes</a>
                         </li>
                     </ul>
-                    <ul class="navbar-nav ms-auto">
+                    <ul class="navbar-nav ms-auto align-items-center gap-2">
+                        <li class="nav-item">
+                            <button class="theme-toggle-nav" id="themeToggleNav" title="Cambiar tema" aria-label="Cambiar tema">
+                                <span id="themeIconNav">&#9790;</span>
+                            </button>
+                        </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                                 <span class="badge bg-secondary me-1">@rol</span>@userName
@@ -112,7 +120,52 @@
 @await RenderSectionAsync("Scripts", required: false)
 <script>
     (function () {
+        var body = document.body;
+        var icon = document.getElementById('themeIconNav');
+        var btn  = document.getElementById('themeToggleNav');
+        var isLight = localStorage.getItem('sm-theme') === 'light';
+
+        function applyTheme(light) {
+            if (light) {
+                body.classList.add('light-mode');
+                if (icon) icon.innerHTML = '&#9728;';
+            } else {
+                body.classList.remove('light-mode');
+                if (icon) icon.innerHTML = '&#9790;';
+            }
+        }
+
+        applyTheme(isLight);
+
+        if (btn) {
+            btn.addEventListener('click', function () {
+                isLight = !isLight;
+                localStorage.setItem('sm-theme', isLight ? 'light' : 'dark');
+                applyTheme(isLight);
+            });
+        }
+    })();
+</script>
+<script>
+    (function () {
+        var SOMEE_KEYWORDS = ['somee', 'virtual server', 'hosted windows', '2.5ghz', 'ads.mgmt'];
+
+        function containsSomee(el) {
+            var text = (el.textContent || '').toLowerCase();
+            var html = (el.innerHTML || '').toLowerCase();
+            return SOMEE_KEYWORDS.some(function(k) { return text.includes(k) || html.includes(k); });
+        }
+
+        function removeEl(el) {
+            el.style.cssText += ';display:none!important;visibility:hidden!important;height:0!important;overflow:hidden!important;';
+            try { el.remove(); } catch (e) { }
+        }
+
         function removeSomeeWatermarks() {
+            // 1. Bloquear scripts de somee antes de que carguen
+            document.querySelectorAll('script[src*="somee.com"]').forEach(removeEl);
+
+            // 2. Subir al hijo directo de body para cualquier link/img/iframe a somee
             document.querySelectorAll('a[href*="somee.com"], img[src*="somee.com"], iframe[src*="somee.com"]').forEach(function (el) {
                 var target = el;
                 var p = el.parentElement;
@@ -120,18 +173,31 @@
                     target = p;
                     p = p.parentElement;
                 }
-                target.style.display = 'none';
-                try { target.remove(); } catch (e) { }
+                removeEl(target);
+            });
+
+            // 3. Apuntar por z-index máximo (firma única del banner de SOMEE)
+            document.querySelectorAll('[style*="2147483647"]').forEach(removeEl);
+
+            // 4. Escanear hijos directos de body por texto de SOMEE (captura el banner de WholeInsert5.js)
+            Array.from(document.body.children).forEach(function (el) {
+                var tag = el.tagName;
+                if (tag === 'HEADER' || tag === 'MAIN' || tag === 'FOOTER' || tag === 'DIV' && el.classList.contains('container')) return;
+                if (el.style && el.style.zIndex === '2147483647') { removeEl(el); return; }
+                if (containsSomee(el)) removeEl(el);
             });
         }
+
         removeSomeeWatermarks();
+
         new MutationObserver(function () {
             setTimeout(removeSomeeWatermarks, 0);
         }).observe(document.documentElement, { childList: true, subtree: true });
+
         window.addEventListener('load', function () {
-            removeSomeeWatermarks();
-            setTimeout(removeSomeeWatermarks, 500);
-            setTimeout(removeSomeeWatermarks, 1500);
+            [0, 300, 800, 1500, 3000].forEach(function(ms) {
+                setTimeout(removeSomeeWatermarks, ms);
+            });
         });
     })();
 </script>
