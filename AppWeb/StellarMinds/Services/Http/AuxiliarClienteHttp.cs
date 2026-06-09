@@ -37,9 +37,10 @@ namespace WebApp.Services.Http
             return respuesta.Content.ReadAsStringAsync().GetAwaiter().GetResult();
         }
 
-        public T? EnviarYDeserializar<T>(string relativeUrl, string verbo, object? body = null, string? token = null)
+        public T? EnviarYDeserializar<T>(string relativeUrl, string verbo, object? body = null, string? token = null, bool throwOnError = true)
         {
-            var resp = EnviarSolicitud(relativeUrl, verbo, body, token);
+            var resp = EnviarSolicitud(relativeUrl, verbo, body, token, throwOnError);
+            if (!resp.IsSuccessStatusCode) return default;
             var json = ObtenerBody(resp);
             var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             return JsonSerializer.Deserialize<T>(json, opts);
