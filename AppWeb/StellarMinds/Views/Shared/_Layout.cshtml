@@ -2,8 +2,15 @@
 <html lang="es">
 <head>
     <script>
-        if (localStorage.getItem('sm-theme') === 'light') document.documentElement.style.setProperty('--pre-theme', 'light');
+        // Aplica la clase antes de que cargue Bootstrap para evitar flash
+        if (localStorage.getItem('sm-theme') === 'light') {
+            document.documentElement.classList.add('light-mode-pre');
+        }
     </script>
+    <style>
+        /* evita flash: sincroniza body antes de que el JS del final arranque */
+        html.light-mode-pre body { background-color: #f6f8fa !important; color: #24292f !important; }
+    </style>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - StellarMinds</title>
@@ -150,6 +157,7 @@
         }
 
         applyTheme(isLight);
+        document.documentElement.classList.remove('light-mode-pre');
 
         if (btn) {
             btn.addEventListener('click', function () {
