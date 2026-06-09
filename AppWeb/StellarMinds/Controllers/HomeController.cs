@@ -6,13 +6,17 @@ namespace StellarMinds.Controllers
 {
     public class HomeController : Controller
     {
+        private string? Token => HttpContext.Session.GetString("token");
+
         public IActionResult Index()
         {
+            if (Token == null) return RedirectToAction("Index", "Usuarios");
             return View();
         }
 
         public IActionResult Privacy()
         {
+            if (Token == null) return RedirectToAction("Index", "Usuarios");
             return View();
         }
 
