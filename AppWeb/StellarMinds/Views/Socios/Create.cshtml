@@ -1,7 +1,9 @@
 @model StellarMinds.Models.Socios.SocioViewModel
-@{ ViewData["Title"] = "Registrar socio"; }
+@{ ViewData["Title"] = "Registrar usuario"; }
 
-<div class="d-flex justify-content-between align-items-center mb-3"><h2>Registrar nuevo socio</h2></div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 id="tituloForm">Registrar nuevo usuario</h2>
+</div>
 
 @if (TempData["Exito"] != null) { <div class="alert alert-success alert-dismissible fade show">@TempData["Exito"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
 @if (TempData["Error"] != null) { <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
@@ -26,16 +28,35 @@
         </div>
         <div class="mb-3">
             <label asp-for="RolNombre" class="form-label"></label>
-            <select asp-for="RolNombre" class="form-select">
+            <select asp-for="RolNombre" class="form-select" id="selectRol">
                 <option value="Socio">Socio</option>
                 <option value="Coordinador">Coordinador</option>
                 <option value="Administrador">Administrador</option>
             </select>
         </div>
         <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Registrar socio</button>
+            <button type="submit" class="btn btn-primary" id="btnSubmit">Registrar</button>
             <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
         </div>
     </form>
 </div></div></div></div>
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+<script>
+(function () {
+    var select = document.getElementById('selectRol');
+    var titulo = document.getElementById('tituloForm');
+    var btn    = document.getElementById('btnSubmit');
+
+    function actualizar() {
+        var rol = select.value;
+        titulo.textContent = 'Registrar nuevo ' + rol.toLowerCase();
+        btn.textContent    = 'Registrar ' + rol.toLowerCase();
+    }
+
+    select.addEventListener('change', actualizar);
+    actualizar();
+})();
+</script>
+}

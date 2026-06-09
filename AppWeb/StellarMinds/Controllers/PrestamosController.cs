@@ -141,9 +141,11 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Administrador") return Forbid();
+            var prestamo  = _http.EnviarYDeserializar<JsonElement?>($"api/prestamos/{prestamoId}", "GET", token: Token, throwOnError: false);
             var auditoria = _http.EnviarYDeserializar<List<JsonElement>>($"api/prestamos/{prestamoId}/auditoria", "GET", token: Token) ?? [];
             ViewBag.PrestamoId = prestamoId;
-            ViewBag.Auditoria = auditoria;
+            ViewBag.Prestamo   = prestamo;
+            ViewBag.Auditoria  = auditoria;
             return View();
         }
     }
