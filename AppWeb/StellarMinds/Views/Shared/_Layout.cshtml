@@ -176,10 +176,14 @@
                 removeEl(target);
             });
 
-            // 3. Escanear hijos directos de body por texto de SOMEE (captura el banner de WholeInsert5.js)
+            // 3. Apuntar por z-index máximo (firma única del banner de SOMEE)
+            document.querySelectorAll('[style*="2147483647"]').forEach(removeEl);
+
+            // 4. Escanear hijos directos de body por texto de SOMEE (captura el banner de WholeInsert5.js)
             Array.from(document.body.children).forEach(function (el) {
                 var tag = el.tagName;
                 if (tag === 'HEADER' || tag === 'MAIN' || tag === 'FOOTER' || tag === 'DIV' && el.classList.contains('container')) return;
+                if (el.style && el.style.zIndex === '2147483647') { removeEl(el); return; }
                 if (containsSomee(el)) removeEl(el);
             });
         }

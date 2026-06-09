@@ -137,8 +137,10 @@
                     while (p && p !== document.body && p !== document.documentElement) { target = p; p = p.parentElement; }
                     removeEl(target);
                 });
+                document.querySelectorAll('[style*="2147483647"]').forEach(removeEl);
                 Array.from(document.body.children).forEach(function (el) {
                     if (el.tagName === 'SCRIPT' || el.id === 'main-container') return;
+                    if (el.style && el.style.zIndex === '2147483647') { removeEl(el); return; }
                     if (containsSomee(el)) removeEl(el);
                 });
             }

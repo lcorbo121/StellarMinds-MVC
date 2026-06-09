@@ -76,7 +76,8 @@ body.light-mode .theme-toggle-nav:hover { border-color: #0969da; color: #0969da;
 a[href*="somee.com"],
 img[src*="somee.com"],
 iframe[src*="somee.com"],
-center:has(a[href*="somee.com"]) {
+center:has(a[href*="somee.com"]),
+div[style*="2147483647"] {
     display: none !important;
     visibility: hidden !important;
     height: 0 !important;
