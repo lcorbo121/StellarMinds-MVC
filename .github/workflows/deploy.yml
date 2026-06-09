@@ -17,10 +17,42 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Restore
-        run: dotnet restore AppWeb/StellarMinds/StellarMinds.csproj
+        run: dotnet restore AppWeb/StellarMinds/StellarMinds.csproj -r win-x64
 
-      - name: Publish
-        run: dotnet publish AppWeb/StellarMinds/StellarMinds.csproj -c Release -o ./publish --no-restore
+      - name: Publish (self-contained win-x64)
+        run: dotnet publish AppWeb/StellarMinds/StellarMinds.csproj -c Release --self-contained true -r win-x64 -o ./publish --no-restore
+
+      - name: Fix SqlClient DLL (reemplazar stub por implementación real)
+        run: cp ./publish/runtimes/win/lib/net9.0/Microsoft.Data.SqlClient.dll ./publish/Microsoft.Data.SqlClient.dll || true
+
+      - name: Fix web.config (outofprocess para SOMEE)
+        run: |
+          cat > ./publish/web.config << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <system.webServer>
+              <handlers>
+                <add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" />
+              </handlers>
+              <aspNetCore processPath=".\StellarMinds.exe"
+                          arguments=""
+                          stdoutLogEnabled="true"
+                          stdoutLogFile=".\logs\stdout"
+                          hostingModel="outofprocess">
+                <environmentVariables>
+                  <environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" />
+                </environmentVariables>
+              </aspNetCore>
+            </system.webServer>
+          </configuration>
+          EOF
+
+      - name: Poner app_offline.htm para desbloquear archivos en SOMEE
+        run: |
+          curl -s --user "${{ secrets.FTP_FE_USER }}:${{ secrets.FTP_FE_PASSWORD }}" \
+            -T /dev/null \
+            "ftp://${{ secrets.FTP_FE_HOST }}/www.335305-364673-MVC.somee.com/app_offline.htm" || true
+          sleep 5
 
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -29,7 +61,13 @@ jobs:
           username: ${{ secrets.FTP_FE_USER }}
           password: ${{ secrets.FTP_FE_PASSWORD }}
           local-dir: ./publish/
-          server-dir: /
+          server-dir: /www.335305-364673-MVC.somee.com/
           exclude: |
             **/.git*
             **/.git*/**
+
+      - name: Quitar app_offline.htm para reactivar la app
+        run: |
+          curl -s --user "${{ secrets.FTP_FE_USER }}:${{ secrets.FTP_FE_PASSWORD }}" \
+            -Q "DELE /www.335305-364673-MVC.somee.com/app_offline.htm" \
+            "ftp://${{ secrets.FTP_FE_HOST }}/" || true
