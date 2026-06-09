@@ -63,7 +63,7 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Socio") return Forbid();
-            var lista = _http.EnviarYDeserializar<List<JsonElement>>("api/observaciones/mis-observaciones", "GET", token: Token) ?? [];
+            var lista = _http.EnviarYDeserializar<List<JsonElement>>("api/observaciones/mis-observaciones", "GET", token: Token, throwOnError: false) ?? [];
             ViewBag.Observaciones = lista;
             return View();
         }
@@ -73,7 +73,7 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Coordinador" && Rol != "Administrador") return Forbid();
-            var lista = _http.EnviarYDeserializar<List<JsonElement>>("api/observaciones/todas", "GET", token: Token) ?? [];
+            var lista = _http.EnviarYDeserializar<List<JsonElement>>("api/observaciones/todas", "GET", token: Token, throwOnError: false) ?? [];
             ViewBag.Observaciones = lista;
             return View();
         }
