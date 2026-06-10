@@ -30,10 +30,9 @@ namespace StellarMinds.Controllers
         public IActionResult Evaluar(int prestamoId, int objetoCelesteId)
         {
             if (Token == null) return Json(new { error = "No autorizado" });
-            var resp = _http.EnviarSolicitud("api/observaciones/evaluar", "POST", new { prestamoId, objetoCelesteId }, Token, throwOnError: false);
-            var json = _http.ObtenerBody(resp);
-            if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, json);
-            return Content(json, "application/json");
+            var resp = _http.EnviarSolicitud("api/observaciones/evaluar", "POST", new { prestamoId, objetoCelesteId }, Token);
+            if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, _http.ObtenerMensajeError(resp));
+            return Content(_http.ObtenerBody(resp), "application/json");
         }
 
         [HttpGet]
@@ -63,7 +62,7 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Socio") return Forbid();
-            var lista = _http.EnviarYDeserializar<List<JsonElement>>("api/observaciones/mis-observaciones", "GET", token: Token, throwOnError: false) ?? [];
+            var lista = _http.EnviarYDeserializar<List<JsonElement>>("api/observaciones/mis-observaciones", "GET", token: Token) ?? [];
             ViewBag.Observaciones = lista;
             return View();
         }
@@ -73,7 +72,7 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Coordinador" && Rol != "Administrador") return Forbid();
-            var lista = _http.EnviarYDeserializar<List<JsonElement>>("api/observaciones/todas", "GET", token: Token, throwOnError: false) ?? [];
+            var lista = _http.EnviarYDeserializar<List<JsonElement>>("api/observaciones/todas", "GET", token: Token) ?? [];
             ViewBag.Observaciones = lista;
             return View();
         }
@@ -89,15 +88,13 @@ namespace StellarMinds.Controllers
                 return RedirectToAction("Create");
             }
             var dto = new { prestamoId, objetoCelesteId, fechaObservacion, notas = notas ?? "", indicadorIA = indicadorIA ?? "", detalleIA = detalleIA ?? "" };
-            var resp = _http.EnviarSolicitud("api/observaciones", "POST", dto, Token, throwOnError: false);
-            var body = _http.ObtenerBody(resp);
+            var resp = _http.EnviarSolicitud("api/observaciones", "POST", dto, Token);
             if (!resp.IsSuccessStatusCode)
             {
-                try { var err = System.Text.Json.JsonDocument.Parse(body); TempData["Error"] = err.RootElement.TryGetProperty("error", out var e) ? e.GetString() : body; }
-                catch { TempData["Error"] = body; }
+                TempData["Error"] = _http.ObtenerMensajeError(resp);
                 return RedirectToAction("Create");
             }
-            TempData["ResultadoIA"] = body;
+            TempData["ResultadoIA"] = _http.ObtenerBody(resp);
             TempData["Exito"] = "Observación registrada correctamente.";
             return RedirectToAction("Create");
         }
