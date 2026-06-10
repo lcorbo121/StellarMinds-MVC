@@ -44,6 +44,7 @@ namespace StellarMinds.Controllers
             if (Rol != "Coordinador" && Rol != "Administrador") return Forbid();
             if (!ModelState.IsValid) { TempData["Error"] = "Datos del formulario inválidos."; return RedirectToAction("Create"); }
             if (!model.CamaraId.HasValue && !model.OcularId.HasValue) { TempData["Error"] = "Debe seleccionar al menos una Cámara o un Ocular."; return RedirectToAction("Create"); }
+            if (model.CamaraId.HasValue && model.OcularId.HasValue) { TempData["Error"] = "No puede seleccionar Cámara y Ocular a la vez: elija solo uno."; return RedirectToAction("Create"); }
             var dto = new { model.UsuarioId, model.TelescopioId, model.MonturaId, model.CamaraId, model.OcularId, FechaInicio = model.FechaInicio.ToString("yyyy-MM-dd"), FechaFin = model.FechaFin.ToString("yyyy-MM-dd") };
             var resp = _http.EnviarSolicitud("api/prestamos", "POST", dto, Token);
             if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Préstamo registrado correctamente."; return RedirectToAction("Create"); }
