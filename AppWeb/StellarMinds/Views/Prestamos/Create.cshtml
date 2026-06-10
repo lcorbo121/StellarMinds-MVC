@@ -36,7 +36,7 @@
                     <select asp-for="OcularId" id="selectOcular" class="form-select"><option value="">-- Sin ocular --</option></select>
                 </div>
             </div>
-            <div class="form-text text-muted mb-3">Debe seleccionar al menos una cámara o un ocular.</div>
+            <div class="form-text text-muted mb-3">Debe seleccionar una cámara <strong>o</strong> un ocular (uno solo, no ambos).</div>
             <div class="row mb-3">
                 <div class="col-md-6"><label asp-for="FechaInicio" class="form-label"></label><input asp-for="FechaInicio" class="form-control" type="date" /></div>
                 <div class="col-md-6"><label asp-for="FechaFin"    class="form-label"></label><input asp-for="FechaFin"    class="form-control" type="date" /></div>
@@ -288,12 +288,19 @@
         mon = find(monturas, this.value);
         renderPanel();
     });
-    document.getElementById('selectCamara').addEventListener('change', function () {
+    const selCamara = document.getElementById('selectCamara');
+    const selOcular = document.getElementById('selectOcular');
+    selCamara.addEventListener('change', function () {
         cam = find(camaras, this.value);
+        // Cámara (astrofotografía) y ocular (visual) son excluyentes: uno u otro, no ambos.
+        if (this.value) { selOcular.value = ''; ocu = null; selOcular.disabled = true; }
+        else { selOcular.disabled = false; }
         renderPanel();
     });
-    document.getElementById('selectOcular').addEventListener('change', function () {
+    selOcular.addEventListener('change', function () {
         ocu = find(oculares, this.value);
+        if (this.value) { selCamara.value = ''; cam = null; selCamara.disabled = true; }
+        else { selCamara.disabled = false; }
         renderPanel();
     });
 })();
