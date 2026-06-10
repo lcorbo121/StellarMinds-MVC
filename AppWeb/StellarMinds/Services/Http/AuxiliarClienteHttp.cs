@@ -27,10 +27,15 @@ namespace WebApp.Services.Http
                 "DELETE" => client.DeleteAsync(relativeUrl).GetAwaiter().GetResult(),
                 _ => throw new ArgumentException("Verbo no soportado", nameof(verbo))
             };
-
+            
+        // TERMINAR lcorbo
+        // REVISAR REPORTAR ERROR EN RESPUESTA DE API, NO SE MUESTRA MENSAJE DE ERROR EN VISTA
+     
             if (throwOnError) resp.EnsureSuccessStatusCode();
             return resp;
         }
+        // ESTA LINEA ESTA MAL EN EL CONCEPTO SOLID.
+
 
         public string ObtenerBody(HttpResponseMessage respuesta)
         {
