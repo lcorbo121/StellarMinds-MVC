@@ -30,7 +30,7 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Administrador") return Forbid();
-            var usuarios = _http.EnviarYDeserializar<List<JsonElement>>("api/usuarios/todos", "GET", token: Token, throwOnError: false) ?? [];
+            var usuarios = _http.EnviarYDeserializar<List<JsonElement>>("api/usuarios/todos", "GET", token: Token) ?? [];
             ViewBag.Usuarios = usuarios;
             return View();
         }
@@ -61,8 +61,8 @@ namespace StellarMinds.Controllers
                 return RedirectToAction("Create");
             }
 
-            var error = _http.ObtenerBody(response);
-            ModelState.AddModelError("", string.IsNullOrEmpty(error) ? "Error al registrar el socio." : error);
+            var error = _http.ObtenerMensajeError(response);
+            ModelState.AddModelError("", error);
             return View(model);
         }
     }
