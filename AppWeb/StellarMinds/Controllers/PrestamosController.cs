@@ -45,7 +45,7 @@ namespace StellarMinds.Controllers
             if (!ModelState.IsValid) { TempData["Error"] = "Datos del formulario inválidos."; return RedirectToAction("Create"); }
             if (!model.CamaraId.HasValue && !model.OcularId.HasValue) { TempData["Error"] = "Debe seleccionar al menos una Cámara o un Ocular."; return RedirectToAction("Create"); }
             var dto = new { model.UsuarioId, model.TelescopioId, model.MonturaId, model.CamaraId, model.OcularId, FechaInicio = model.FechaInicio.ToString("yyyy-MM-dd"), FechaFin = model.FechaFin.ToString("yyyy-MM-dd") };
-            var resp = _http.EnviarSolicitud("api/prestamos", "POST", dto, Token);
+            var resp = _http.EnviarSolicitud("api/prestamos", "POST", dto, Token, throwOnError: false);
             if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Préstamo registrado correctamente."; return RedirectToAction("Create"); }
             TempData["Error"] = _http.ObtenerMensajeError(resp);
             return RedirectToAction("Create");
@@ -74,7 +74,7 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Coordinador" && Rol != "Administrador") return Forbid();
-            var resp = _http.EnviarSolicitud($"api/prestamos/{prestamoId}/devolucion", "PUT", token: Token);
+            var resp = _http.EnviarSolicitud($"api/prestamos/{prestamoId}/devolucion", "PUT", token: Token, throwOnError: false);
             if (resp.IsSuccessStatusCode) TempData["Exito"] = "Devolución registrada correctamente.";
             else TempData["Error"] = _http.ObtenerMensajeError(resp);
             return RedirectToAction("Devolucion");

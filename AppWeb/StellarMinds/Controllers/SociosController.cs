@@ -53,7 +53,7 @@ namespace StellarMinds.Controllers
                 model.PhoneNumber,
                 model.UserName,
                 model.RolNombre
-            }, Token);
+            }, Token, throwOnError: false);
 
             if (response.IsSuccessStatusCode)
             {
