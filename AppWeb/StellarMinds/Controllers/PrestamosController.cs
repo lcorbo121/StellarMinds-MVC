@@ -47,7 +47,16 @@ namespace StellarMinds.Controllers
             if (model.CamaraId.HasValue && model.OcularId.HasValue) { TempData["Error"] = "No puede seleccionar Cámara y Ocular a la vez: elija solo uno."; return RedirectToAction("Create"); }
             var dto = new { model.UsuarioId, model.TelescopioId, model.MonturaId, model.CamaraId, model.OcularId, FechaInicio = model.FechaInicio.ToString("yyyy-MM-dd"), FechaFin = model.FechaFin.ToString("yyyy-MM-dd") };
             var resp = _http.EnviarSolicitud("api/prestamos", "POST", dto, Token);
-            if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Préstamo registrado correctamente."; return RedirectToAction("Create"); }
+            if (resp.IsSuccessStatusCode)
+            {
+                TempData["Exito"] = "Préstamo registrado correctamente.";
+                // La API devuelve el id del préstamo creado: redirigimos a su detalle.
+                var nuevoId = 0;
+                try { using var doc = JsonDocument.Parse(_http.ObtenerBody(resp)); if (doc.RootElement.TryGetProperty("id", out var idEl)) nuevoId = idEl.GetInt32(); } catch { }
+                return nuevoId > 0
+                    ? RedirectToAction("DetallePrestamo", new { prestamoId = nuevoId })
+                    : RedirectToAction("Create");
+            }
             TempData["Error"] = _http.ObtenerMensajeError(resp);
             return RedirectToAction("Create");
         }
@@ -141,7 +150,7 @@ namespace StellarMinds.Controllers
         public IActionResult DetallePrestamo(int prestamoId)
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
-            if (Rol != "Administrador") return Forbid();
+            if (Rol != "Administrador" && Rol != "Coordinador") return Forbid();
             var prestamo  = _http.EnviarYDeserializar<JsonElement?>($"api/prestamos/{prestamoId}", "GET", token: Token);
             var auditoria = _http.EnviarYDeserializar<List<JsonElement>>($"api/prestamos/{prestamoId}/auditoria", "GET", token: Token) ?? [];
             ViewBag.PrestamoId = prestamoId;

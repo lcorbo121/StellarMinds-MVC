@@ -14,9 +14,18 @@
     }
 }
 
+@if (TempData["Exito"] != null) { <div class="alert alert-success alert-dismissible fade show">@TempData["Exito"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Préstamo <span class="text-muted fs-4">#@prestamoId</span></h2>
-    <a asp-action="Auditoria" class="btn btn-outline-secondary">← Volver a auditoría</a>
+    <div class="d-flex gap-2">
+        <a asp-controller="Prestamos" asp-action="Create" class="btn btn-outline-primary">+ Registrar otro</a>
+        @if (Context.Session.GetString("rol") == "Administrador")
+        {
+            <a asp-action="Auditoria" class="btn btn-outline-secondary">← Volver a auditoría</a>
+        }
+    </div>
 </div>
 
 @if (p.HasValue)
