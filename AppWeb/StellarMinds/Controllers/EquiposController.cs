@@ -59,7 +59,7 @@ namespace StellarMinds.Controllers
             ViewBag.Tipo = tipo.ToLower();
             if (!ModelState.IsValid) return View("CreateTelescopio", model);
             var dto = new { model.Marca, model.Modelo, model.Apertura, model.RelacionFocal, model.DistanciaFocal, model.Peso, model.CantidadDisponible };
-            var resp = _http.EnviarSolicitud(UrlTipo(tipo), "POST", dto, Token, throwOnError: false);
+            var resp = _http.EnviarSolicitud(UrlTipo(tipo), "POST", dto, Token);
             if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Telescopio creado correctamente."; return RedirectToAction("Index", new { tipo }); }
             ModelState.AddModelError("", _http.ObtenerMensajeError(resp));
             return View("CreateTelescopio", model);
@@ -73,7 +73,7 @@ namespace StellarMinds.Controllers
             ViewBag.Tipo = tipo.ToLower();
             if (!ModelState.IsValid) return View("CreateMontura", model);
             var dto = new { model.Marca, model.Modelo, model.TipoMontura, model.CargaUtil, model.EsGoTo, model.CantidadDisponible };
-            var resp = _http.EnviarSolicitud(UrlTipo(tipo), "POST", dto, Token, throwOnError: false);
+            var resp = _http.EnviarSolicitud(UrlTipo(tipo), "POST", dto, Token);
             if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Montura creada correctamente."; return RedirectToAction("Index", new { tipo }); }
             ModelState.AddModelError("", _http.ObtenerMensajeError(resp));
             return View("CreateMontura", model);
@@ -87,7 +87,7 @@ namespace StellarMinds.Controllers
             ViewBag.Tipo = tipo.ToLower();
             if (!ModelState.IsValid) return View("CreateCamara", model);
             var dto = new { model.Marca, model.Modelo, model.TipoSensor, model.Resolucion, model.TamanoPixel, model.CantidadDisponible };
-            var resp = _http.EnviarSolicitud(UrlTipo(tipo), "POST", dto, Token, throwOnError: false);
+            var resp = _http.EnviarSolicitud(UrlTipo(tipo), "POST", dto, Token);
             if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Cámara creada correctamente."; return RedirectToAction("Index", new { tipo }); }
             ModelState.AddModelError("", _http.ObtenerMensajeError(resp));
             return View("CreateCamara", model);
@@ -101,7 +101,7 @@ namespace StellarMinds.Controllers
             ViewBag.Tipo = tipo.ToLower();
             if (!ModelState.IsValid) return View("CreateOcular", model);
             var dto = new { model.Marca, model.Modelo, model.Diametro, model.AnguloVision, model.CantidadDisponible };
-            var resp = _http.EnviarSolicitud(UrlTipo(tipo), "POST", dto, Token, throwOnError: false);
+            var resp = _http.EnviarSolicitud(UrlTipo(tipo), "POST", dto, Token);
             if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Ocular creado correctamente."; return RedirectToAction("Index", new { tipo }); }
             ModelState.AddModelError("", _http.ObtenerMensajeError(resp));
             return View("CreateOcular", model);
@@ -131,7 +131,7 @@ namespace StellarMinds.Controllers
             ViewBag.Tipo = tipo.ToLower();
             if (!ModelState.IsValid) return View("EditTelescopio", model);
             var dto = new { model.Marca, model.Modelo, model.Apertura, model.RelacionFocal, model.DistanciaFocal, model.Peso, model.CantidadDisponible };
-            var resp = _http.EnviarSolicitud($"{UrlTipo(tipo)}/{model.Id}", "PUT", dto, Token, throwOnError: false);
+            var resp = _http.EnviarSolicitud($"{UrlTipo(tipo)}/{model.Id}", "PUT", dto, Token);
             if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Telescopio actualizado correctamente."; return RedirectToAction("Index", new { tipo }); }
             ModelState.AddModelError("", _http.ObtenerMensajeError(resp));
             return View("EditTelescopio", model);
@@ -145,7 +145,7 @@ namespace StellarMinds.Controllers
             ViewBag.Tipo = tipo.ToLower();
             if (!ModelState.IsValid) return View("EditMontura", model);
             var dto = new { model.Marca, model.Modelo, model.TipoMontura, model.CargaUtil, model.EsGoTo, model.CantidadDisponible };
-            var resp = _http.EnviarSolicitud($"{UrlTipo(tipo)}/{model.Id}", "PUT", dto, Token, throwOnError: false);
+            var resp = _http.EnviarSolicitud($"{UrlTipo(tipo)}/{model.Id}", "PUT", dto, Token);
             if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Montura actualizada correctamente."; return RedirectToAction("Index", new { tipo }); }
             ModelState.AddModelError("", _http.ObtenerMensajeError(resp));
             return View("EditMontura", model);
@@ -159,7 +159,7 @@ namespace StellarMinds.Controllers
             ViewBag.Tipo = tipo.ToLower();
             if (!ModelState.IsValid) return View("EditCamara", model);
             var dto = new { model.Marca, model.Modelo, model.TipoSensor, model.Resolucion, model.TamanoPixel, model.CantidadDisponible };
-            var resp = _http.EnviarSolicitud($"{UrlTipo(tipo)}/{model.Id}", "PUT", dto, Token, throwOnError: false);
+            var resp = _http.EnviarSolicitud($"{UrlTipo(tipo)}/{model.Id}", "PUT", dto, Token);
             if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Cámara actualizada correctamente."; return RedirectToAction("Index", new { tipo }); }
             ModelState.AddModelError("", _http.ObtenerMensajeError(resp));
             return View("EditCamara", model);
@@ -173,7 +173,7 @@ namespace StellarMinds.Controllers
             ViewBag.Tipo = tipo.ToLower();
             if (!ModelState.IsValid) return View("EditOcular", model);
             var dto = new { model.Marca, model.Modelo, model.Diametro, model.AnguloVision, model.CantidadDisponible };
-            var resp = _http.EnviarSolicitud($"{UrlTipo(tipo)}/{model.Id}", "PUT", dto, Token, throwOnError: false);
+            var resp = _http.EnviarSolicitud($"{UrlTipo(tipo)}/{model.Id}", "PUT", dto, Token);
             if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Ocular actualizado correctamente."; return RedirectToAction("Index", new { tipo }); }
             ModelState.AddModelError("", _http.ObtenerMensajeError(resp));
             return View("EditOcular", model);
