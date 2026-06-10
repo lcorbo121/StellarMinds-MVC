@@ -45,9 +45,9 @@ namespace StellarMinds.Controllers
             if (!ModelState.IsValid) { TempData["Error"] = "Datos del formulario inválidos."; return RedirectToAction("Create"); }
             if (!model.CamaraId.HasValue && !model.OcularId.HasValue) { TempData["Error"] = "Debe seleccionar al menos una Cámara o un Ocular."; return RedirectToAction("Create"); }
             var dto = new { model.UsuarioId, model.TelescopioId, model.MonturaId, model.CamaraId, model.OcularId, FechaInicio = model.FechaInicio.ToString("yyyy-MM-dd"), FechaFin = model.FechaFin.ToString("yyyy-MM-dd") };
-            var resp = _http.EnviarSolicitud("api/prestamos", "POST", dto, Token, throwOnError: false);
+            var resp = _http.EnviarSolicitud("api/prestamos", "POST", dto, Token);
             if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Préstamo registrado correctamente."; return RedirectToAction("Create"); }
-            TempData["Error"] = _http.ObtenerBody(resp);
+            TempData["Error"] = _http.ObtenerMensajeError(resp);
             return RedirectToAction("Create");
         }
 
@@ -74,9 +74,9 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Coordinador" && Rol != "Administrador") return Forbid();
-            var resp = _http.EnviarSolicitud($"api/prestamos/{prestamoId}/devolucion", "PUT", token: Token, throwOnError: false);
+            var resp = _http.EnviarSolicitud($"api/prestamos/{prestamoId}/devolucion", "PUT", token: Token);
             if (resp.IsSuccessStatusCode) TempData["Exito"] = "Devolución registrada correctamente.";
-            else TempData["Error"] = _http.ObtenerBody(resp);
+            else TempData["Error"] = _http.ObtenerMensajeError(resp);
             return RedirectToAction("Devolucion");
         }
 
@@ -99,7 +99,7 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Coordinador" && Rol != "Administrador") return Forbid();
-            var prestamos = _http.EnviarYDeserializar<List<JsonElement>>("api/prestamos/todos", "GET", token: Token, throwOnError: false) ?? [];
+            var prestamos = _http.EnviarYDeserializar<List<JsonElement>>("api/prestamos/todos", "GET", token: Token) ?? [];
             ViewBag.Prestamos = prestamos;
             return View();
         }
@@ -141,7 +141,7 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Administrador") return Forbid();
-            var prestamo  = _http.EnviarYDeserializar<JsonElement?>($"api/prestamos/{prestamoId}", "GET", token: Token, throwOnError: false);
+            var prestamo  = _http.EnviarYDeserializar<JsonElement?>($"api/prestamos/{prestamoId}", "GET", token: Token);
             var auditoria = _http.EnviarYDeserializar<List<JsonElement>>($"api/prestamos/{prestamoId}/auditoria", "GET", token: Token) ?? [];
             ViewBag.PrestamoId = prestamoId;
             ViewBag.Prestamo   = prestamo;

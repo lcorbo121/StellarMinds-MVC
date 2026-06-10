@@ -13,7 +13,7 @@ namespace WebApp.Services.Http
             _factory = factory;
         }
 
-        public HttpResponseMessage EnviarSolicitud(string relativeUrl, string verbo, object? body = null, string? token = null, bool throwOnError = true)
+        public HttpResponseMessage EnviarSolicitud(string relativeUrl, string verbo, object? body = null, string? token = null)
         {
             var client = _factory.CreateClient("Api");
             if (!string.IsNullOrEmpty(token))
@@ -27,24 +27,48 @@ namespace WebApp.Services.Http
                 "DELETE" => client.DeleteAsync(relativeUrl).GetAwaiter().GetResult(),
                 _ => throw new ArgumentException("Verbo no soportado", nameof(verbo))
             };
-            
-        // TERMINAR lcorbo
-        // REVISAR REPORTAR ERROR EN RESPUESTA DE API, NO SE MUESTRA MENSAJE DE ERROR EN VISTA
-     
-            if (throwOnError) resp.EnsureSuccessStatusCode();
+
+            // El helper solo transporta: NO decide la política de errores HTTP.
+            // Cada caller inspecciona resp.IsSuccessStatusCode y actúa en consecuencia
+            // (mostrar el mensaje con ObtenerMensajeError, devolver default, etc.).
             return resp;
         }
-        // ESTA LINEA ESTA MAL EN EL CONCEPTO SOLID.
-
 
         public string ObtenerBody(HttpResponseMessage respuesta)
         {
             return respuesta.Content.ReadAsStringAsync().GetAwaiter().GetResult();
         }
 
-        public T? EnviarYDeserializar<T>(string relativeUrl, string verbo, object? body = null, string? token = null, bool throwOnError = true)
+        // Extrae el mensaje de error que devuelve la API en formato { "error": "..." }.
+        // Si el body viene vacío o no se puede parsear, devuelve un mensaje genérico,
+        // de modo que la vista siempre tenga algo legible para mostrar.
+        public string ObtenerMensajeError(HttpResponseMessage respuesta)
         {
-            var resp = EnviarSolicitud(relativeUrl, verbo, body, token, throwOnError);
+            const string generico = "Ocurrió un error inesperado.";
+            try
+            {
+                var json = ObtenerBody(respuesta);
+                if (string.IsNullOrWhiteSpace(json)) return generico;
+
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                    doc.RootElement.TryGetProperty("error", out var err) &&
+                    err.ValueKind == JsonValueKind.String)
+                {
+                    var msg = err.GetString();
+                    return string.IsNullOrWhiteSpace(msg) ? generico : msg;
+                }
+                return generico;
+            }
+            catch
+            {
+                return generico;
+            }
+        }
+
+        public T? EnviarYDeserializar<T>(string relativeUrl, string verbo, object? body = null, string? token = null)
+        {
+            var resp = EnviarSolicitud(relativeUrl, verbo, body, token);
             if (!resp.IsSuccessStatusCode) return default;
             var json = ObtenerBody(resp);
             var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
