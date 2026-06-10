@@ -94,9 +94,24 @@ namespace StellarMinds.Controllers
                 TempData["Error"] = _http.ObtenerMensajeError(resp);
                 return RedirectToAction("Create");
             }
-            TempData["ResultadoIA"] = _http.ObtenerBody(resp);
             TempData["Exito"] = "Observación registrada correctamente.";
-            return RedirectToAction("Create");
+            // La API devuelve la observación creada con su id: redirigimos a su detalle.
+            var nuevoId = 0;
+            try { using var doc = JsonDocument.Parse(_http.ObtenerBody(resp)); if (doc.RootElement.TryGetProperty("id", out var idEl)) nuevoId = idEl.GetInt32(); } catch { }
+            return nuevoId > 0
+                ? RedirectToAction("Detalle", new { id = nuevoId })
+                : RedirectToAction("Create");
+        }
+
+        [HttpGet]
+        public IActionResult Detalle(int id)
+        {
+            if (Token == null) return RedirectToAction("Index", "Usuarios");
+            if (Rol != "Socio" && Rol != "Coordinador" && Rol != "Administrador") return Forbid();
+            var obs = _http.EnviarYDeserializar<JsonElement?>($"api/observaciones/{id}", "GET", token: Token);
+            if (obs == null) { TempData["Error"] = "No se encontró la observación."; return RedirectToAction("Create"); }
+            ViewBag.Observacion = obs;
+            return View();
         }
     }
 }

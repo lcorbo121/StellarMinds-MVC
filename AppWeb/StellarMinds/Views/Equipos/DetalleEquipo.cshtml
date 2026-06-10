@@ -1,0 +1,77 @@
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Detalle del equipo";
+    var tipo = (ViewBag.Tipo as string ?? "").ToLower();
+    var e = ViewBag.Equipo as JsonElement?;
+
+    string Val(JsonElement el, string key)
+    {
+        if (!el.TryGetProperty(key, out var v)) return "—";
+        return v.ValueKind switch
+        {
+            JsonValueKind.String => v.GetString() ?? "—",
+            JsonValueKind.Number => v.GetRawText(),
+            JsonValueKind.True => "Sí",
+            JsonValueKind.False => "No",
+            _ => "—"
+        };
+    }
+
+    var (titulo, icono) =
+        tipo.StartsWith("montura") ? ("Montura", "📐") :
+        tipo.StartsWith("camara")  ? ("Cámara", "📷") :
+        tipo.StartsWith("ocular")  ? ("Ocular", "🔬") :
+                                     ("Telescopio", "🔭");
+}
+
+@if (TempData["Exito"] != null) { <div class="alert alert-success alert-dismissible fade show">@TempData["Exito"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>@icono @titulo @if (e.HasValue) { <span class="text-muted fs-4">#@(e.Value.TryGetProperty("id", out var idv) ? idv.GetInt32() : 0)</span> }</h2>
+    <div class="d-flex gap-2">
+        <a asp-action="Create" asp-route-tipo="@tipo" class="btn btn-outline-primary">+ Crear otro</a>
+        <a asp-action="Index" asp-route-tipo="@tipo" class="btn btn-outline-secondary">← Ver lista</a>
+    </div>
+</div>
+
+@if (e.HasValue)
+{
+    var v = e.Value;
+    <div class="card shadow-sm">
+        <div class="card-header fw-semibold">Información del equipo</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-sm-6 col-md-4"><div class="text-muted small">Marca</div><div class="fw-semibold">@Val(v, "marca")</div></div>
+                <div class="col-sm-6 col-md-4"><div class="text-muted small">Modelo</div><div>@Val(v, "modelo")</div></div>
+
+                @if (titulo == "Telescopio")
+                {
+                    <div class="col-sm-6 col-md-4"><div class="text-muted small">Apertura (mm)</div><div>@Val(v, "apertura")</div></div>
+                    <div class="col-sm-6 col-md-4"><div class="text-muted small">Relación focal</div><div>f/@Val(v, "relacionFocal")</div></div>
+                    <div class="col-sm-6 col-md-4"><div class="text-muted small">Distancia focal (mm)</div><div>@Val(v, "distanciaFocal")</div></div>
+                    <div class="col-sm-6 col-md-4"><div class="text-muted small">Peso (kg)</div><div>@Val(v, "peso")</div></div>
+                }
+                else if (titulo == "Montura")
+                {
+                    <div class="col-sm-6 col-md-4"><div class="text-muted small">Tipo</div><div>@Val(v, "tipoMontura")</div></div>
+                    <div class="col-sm-6 col-md-4"><div class="text-muted small">Carga útil (kg)</div><div>@Val(v, "cargaUtil")</div></div>
+                    <div class="col-sm-6 col-md-4"><div class="text-muted small">GoTo</div><div>@Val(v, "esGoTo")</div></div>
+                }
+                else if (titulo == "Cámara")
+                {
+                    <div class="col-sm-6 col-md-4"><div class="text-muted small">Sensor</div><div>@Val(v, "tipoSensor")</div></div>
+                    <div class="col-sm-6 col-md-4"><div class="text-muted small">Resolución</div><div>@Val(v, "resolucion")</div></div>
+                    <div class="col-sm-6 col-md-4"><div class="text-muted small">Tamaño píxel (μm)</div><div>@Val(v, "tamanoPixel")</div></div>
+                }
+                else
+                {
+                    <div class="col-sm-6 col-md-4"><div class="text-muted small">Diámetro (mm)</div><div>@Val(v, "diametro")</div></div>
+                    <div class="col-sm-6 col-md-4"><div class="text-muted small">Campo aparente (°)</div><div>@Val(v, "anguloVision")</div></div>
+                }
+
+                <div class="col-sm-6 col-md-4"><div class="text-muted small">Disponibles</div><div class="fw-semibold">@Val(v, "cantidadDisponible")</div></div>
+            </div>
+        </div>
+    </div>
+}

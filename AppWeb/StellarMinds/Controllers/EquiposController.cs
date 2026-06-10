@@ -60,7 +60,7 @@ namespace StellarMinds.Controllers
             if (!ModelState.IsValid) return View("CreateTelescopio", model);
             var dto = new { model.Marca, model.Modelo, model.Apertura, model.RelacionFocal, model.DistanciaFocal, model.Peso, model.CantidadDisponible };
             var resp = _http.EnviarSolicitud(UrlTipo(tipo), "POST", dto, Token);
-            if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Telescopio creado correctamente."; return RedirectToAction("Index", new { tipo }); }
+            if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Telescopio creado correctamente."; var id = LeerIdCreado(resp); return id > 0 ? RedirectToAction("DetalleEquipo", new { tipo, id }) : RedirectToAction("Index", new { tipo }); }
             ModelState.AddModelError("", _http.ObtenerMensajeError(resp));
             return View("CreateTelescopio", model);
         }
@@ -74,7 +74,7 @@ namespace StellarMinds.Controllers
             if (!ModelState.IsValid) return View("CreateMontura", model);
             var dto = new { model.Marca, model.Modelo, model.TipoMontura, model.CargaUtil, model.EsGoTo, model.CantidadDisponible };
             var resp = _http.EnviarSolicitud(UrlTipo(tipo), "POST", dto, Token);
-            if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Montura creada correctamente."; return RedirectToAction("Index", new { tipo }); }
+            if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Montura creada correctamente."; var id = LeerIdCreado(resp); return id > 0 ? RedirectToAction("DetalleEquipo", new { tipo, id }) : RedirectToAction("Index", new { tipo }); }
             ModelState.AddModelError("", _http.ObtenerMensajeError(resp));
             return View("CreateMontura", model);
         }
@@ -88,7 +88,7 @@ namespace StellarMinds.Controllers
             if (!ModelState.IsValid) return View("CreateCamara", model);
             var dto = new { model.Marca, model.Modelo, model.TipoSensor, model.Resolucion, model.TamanoPixel, model.CantidadDisponible };
             var resp = _http.EnviarSolicitud(UrlTipo(tipo), "POST", dto, Token);
-            if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Cámara creada correctamente."; return RedirectToAction("Index", new { tipo }); }
+            if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Cámara creada correctamente."; var id = LeerIdCreado(resp); return id > 0 ? RedirectToAction("DetalleEquipo", new { tipo, id }) : RedirectToAction("Index", new { tipo }); }
             ModelState.AddModelError("", _http.ObtenerMensajeError(resp));
             return View("CreateCamara", model);
         }
@@ -102,9 +102,27 @@ namespace StellarMinds.Controllers
             if (!ModelState.IsValid) return View("CreateOcular", model);
             var dto = new { model.Marca, model.Modelo, model.Diametro, model.AnguloVision, model.CantidadDisponible };
             var resp = _http.EnviarSolicitud(UrlTipo(tipo), "POST", dto, Token);
-            if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Ocular creado correctamente."; return RedirectToAction("Index", new { tipo }); }
+            if (resp.IsSuccessStatusCode) { TempData["Exito"] = "Ocular creado correctamente."; var id = LeerIdCreado(resp); return id > 0 ? RedirectToAction("DetalleEquipo", new { tipo, id }) : RedirectToAction("Index", new { tipo }); }
             ModelState.AddModelError("", _http.ObtenerMensajeError(resp));
             return View("CreateOcular", model);
+        }
+
+        // Lee el id del equipo creado desde la respuesta { id } de la API.
+        private int LeerIdCreado(System.Net.Http.HttpResponseMessage resp)
+        {
+            try { using var doc = JsonDocument.Parse(_http.ObtenerBody(resp)); if (doc.RootElement.TryGetProperty("id", out var idEl)) return idEl.GetInt32(); } catch { }
+            return 0;
+        }
+
+        [HttpGet]
+        public IActionResult DetalleEquipo(string tipo, int id)
+        {
+            if (Token == null) return RedirectToAction("Index", "Usuarios");
+            var equipo = _http.EnviarYDeserializar<JsonElement?>($"{UrlTipo(tipo)}/{id}", "GET", token: Token);
+            if (equipo == null) { TempData["Error"] = "No se encontró el equipo."; return RedirectToAction("Index", new { tipo }); }
+            ViewBag.Tipo = tipo.ToLower();
+            ViewBag.Equipo = equipo;
+            return View();
         }
 
         [HttpGet]
