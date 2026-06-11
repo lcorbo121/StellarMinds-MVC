@@ -139,7 +139,7 @@ namespace StellarMinds.Controllers
             if (Rol != "Administrador") return Forbid();
             var url = coordinadorId.HasValue ? $"api/prestamos/auditoria?coordinadorId={coordinadorId}" : "api/prestamos/auditoria";
             var auditoria = _http.EnviarYDeserializar<List<JsonElement>>(url, "GET", token: Token) ?? [];
-            var coordinadores = _http.EnviarYDeserializar<List<JsonElement>>("api/usuarios", "GET", token: Token) ?? [];
+            var coordinadores = _http.EnviarYDeserializar<List<JsonElement>>("api/usuarios/todos", "GET", token: Token) ?? [];
             ViewBag.Auditoria = auditoria;
             ViewBag.Coordinadores = coordinadores;
             ViewBag.CoordinadorSeleccionado = coordinadorId;
