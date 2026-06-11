@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using StellarMinds.Models.Equipos;
 using StellarMinds.Models.Prestamos;
+using StellarMinds.Models.Usuarios;
 using System.Text.Json;
 using WebApp.Services.Http;
 
@@ -66,9 +68,8 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Coordinador" && Rol != "Administrador") return Forbid();
-            var socios = _http.EnviarYDeserializar<List<JsonElement>>("api/usuarios", "GET", token: Token) ?? [];
-            ViewBag.Socios = socios;
-            return View();
+            var socios = _http.EnviarYDeserializar<List<UsuarioListaItem>>("api/usuarios", "GET", token: Token) ?? [];
+            return View(socios);
         }
 
         [HttpGet]
@@ -109,9 +110,8 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Coordinador" && Rol != "Administrador") return Forbid();
-            var prestamos = _http.EnviarYDeserializar<List<JsonElement>>("api/prestamos/todos", "GET", token: Token) ?? [];
-            ViewBag.Prestamos = prestamos;
-            return View();
+            var prestamos = _http.EnviarYDeserializar<List<PrestamoListaItem>>("api/prestamos/todos", "GET", token: Token) ?? [];
+            return View(prestamos);
         }
 
         [HttpGet]
@@ -119,16 +119,15 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Administrador" && Rol != "Coordinador") return Forbid();
-            var telescopios = _http.EnviarYDeserializar<List<JsonElement>>("api/telescopios", "GET", token: Token) ?? [];
-            ViewBag.Telescopios = telescopios;
-            return View();
+            var telescopios = _http.EnviarYDeserializar<List<TelescopioListaItem>>("api/telescopios", "GET", token: Token) ?? [];
+            return View(telescopios);
         }
 
         [HttpGet]
         public IActionResult SociosDe(int telescopioId)
         {
             if (Token == null) return Json(new { error = "No autorizado" });
-            var socios = _http.EnviarYDeserializar<List<JsonElement>>($"api/prestamos/socios-por-telescopio/{telescopioId}", "GET", token: Token) ?? [];
+            var socios = _http.EnviarYDeserializar<List<UsuarioListaItem>>($"api/prestamos/socios-por-telescopio/{telescopioId}", "GET", token: Token) ?? [];
             return Json(socios);
         }
 
@@ -137,13 +136,49 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Administrador") return Forbid();
-            var url = coordinadorId.HasValue ? $"api/prestamos/auditoria?coordinadorId={coordinadorId}" : "api/prestamos/auditoria";
-            var auditoria = _http.EnviarYDeserializar<List<JsonElement>>(url, "GET", token: Token) ?? [];
-            var coordinadores = _http.EnviarYDeserializar<List<JsonElement>>("api/usuarios/todos", "GET", token: Token) ?? [];
-            ViewBag.Auditoria = auditoria;
-            ViewBag.Coordinadores = coordinadores;
-            ViewBag.CoordinadorSeleccionado = coordinadorId;
-            return View();
+            // RF11: listado de PRÉSTAMOS filtrable por el coordinador que los dio de alta.
+            var todos = _http.EnviarYDeserializar<List<PrestamoListaItem>>("api/prestamos/todos", "GET", token: Token) ?? [];
+            var auditUrl = coordinadorId.HasValue ? $"api/prestamos/auditoria?coordinadorId={coordinadorId}" : "api/prestamos/auditoria";
+            var audits = _http.EnviarYDeserializar<List<AuditoriaItem>>(auditUrl, "GET", token: Token) ?? [];
+            var coordinadores = _http.EnviarYDeserializar<List<UsuarioListaItem>>("api/usuarios/todos", "GET", token: Token) ?? [];
+
+            // Coordinador que dio de alta cada préstamo (acción "PRESTAMO").
+            var coordPorPrestamo = audits
+                .Where(a => a.Accion == "PRESTAMO")
+                .GroupBy(a => a.PrestamoId)
+                .ToDictionary(g => g.Key, g => g.First().CoordinadorNombre);
+
+            // Con filtro: solo los préstamos cuya alta fue del coordinador seleccionado.
+            IEnumerable<PrestamoListaItem> filtrados = coordinadorId.HasValue
+                ? todos.Where(p => coordPorPrestamo.ContainsKey(p.Id))
+                : todos;
+
+            var prestamos = filtrados
+                .Select(p => new PrestamoAuditableItem
+                {
+                    Prestamo = p,
+                    CoordinadorNombre = coordPorPrestamo.TryGetValue(p.Id, out var c) ? c : "—"
+                })
+                .ToList();
+
+            var vm = new AuditoriaViewModel
+            {
+                Prestamos = prestamos,
+                Coordinadores = coordinadores,
+                CoordinadorSeleccionado = coordinadorId
+            };
+            return View(vm);
+        }
+
+        // RF11: vista de auditoría de un préstamo (sus acciones), con link al detalle.
+        [HttpGet]
+        public IActionResult AuditoriaPrestamo(int prestamoId)
+        {
+            if (Token == null) return RedirectToAction("Index", "Usuarios");
+            if (Rol != "Administrador") return Forbid();
+            var auditoria = _http.EnviarYDeserializar<List<AuditoriaItem>>($"api/prestamos/{prestamoId}/auditoria", "GET", token: Token) ?? [];
+            var vm = new AuditoriaPrestamoViewModel { PrestamoId = prestamoId, Auditoria = auditoria };
+            return View(vm);
         }
 
         [HttpGet]
@@ -151,12 +186,9 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Administrador" && Rol != "Coordinador") return Forbid();
-            var prestamo  = _http.EnviarYDeserializar<JsonElement?>($"api/prestamos/{prestamoId}", "GET", token: Token);
-            var auditoria = _http.EnviarYDeserializar<List<JsonElement>>($"api/prestamos/{prestamoId}/auditoria", "GET", token: Token) ?? [];
-            ViewBag.PrestamoId = prestamoId;
-            ViewBag.Prestamo   = prestamo;
-            ViewBag.Auditoria  = auditoria;
-            return View();
+            var prestamo = _http.EnviarYDeserializar<PrestamoListaItem>($"api/prestamos/{prestamoId}", "GET", token: Token);
+            if (prestamo == null) { TempData["Error"] = "No se encontró el préstamo."; return RedirectToAction("TodosPrestamos"); }
+            return View(prestamo);
         }
     }
 }

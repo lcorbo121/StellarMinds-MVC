@@ -1,14 +1,13 @@
-@using System.Text.Json
+@model List<StellarMinds.Models.Observaciones.ObservacionItem>
 @{
     ViewData["Title"] = "Mis observaciones";
-    var lista = (ViewBag.Observaciones as List<JsonElement>) ?? new List<JsonElement>();
 }
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Mis observaciones</h2>
     <a asp-action="Create" class="btn btn-success btn-sm">+ Nueva observación</a>
 </div>
 
-@if (!lista.Any())
+@if (!Model.Any())
 {
     <div class="alert alert-info">No tenés observaciones registradas aún.</div>
 }
@@ -28,33 +27,24 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var obs in lista)
+                @foreach (var obs in Model)
                 {
-                    var id             = obs.TryGetProperty("id", out var pId) ? pId.GetInt32() : 0;
-                    var fecha          = obs.TryGetProperty("fechaObservacion", out var pF) ? pF.GetString() : "";
-                    var objeto         = obs.TryGetProperty("objetoCeleste", out var pO) ? pO.GetString() : "";
-                    var tipo           = obs.TryGetProperty("tipoObjeto", out var pT) ? pT.GetString() : "";
-                    var telescopio     = obs.TryGetProperty("telescopio", out var pTel) ? pTel.GetString() : "";
-                    var indicador      = obs.TryGetProperty("indicadorIA", out var pInd) ? pInd.GetString() : "";
-                    var detalle        = obs.TryGetProperty("detalleIA", out var pDet) ? pDet.GetString() : "";
-                    var notas          = obs.TryGetProperty("notas", out var pN) ? pN.GetString() : "";
-                    var badgeCss = indicador switch { "IDEAL" => "success", "ADECUADO" => "warning", "NO RECOMENDABLE" => "danger", _ => "secondary" };
-
+                    var badgeCss = obs.IndicadorIA switch { "IDEAL" => "success", "ADECUADO" => "warning", "NO RECOMENDABLE" => "danger", _ => "secondary" };
                     <tr>
-                        <td class="text-muted small">@id</td>
-                        <td>@fecha</td>
-                        <td><strong>@objeto</strong></td>
-                        <td><span class="badge bg-secondary">@tipo</span></td>
-                        <td>@telescopio</td>
+                        <td class="text-muted small">@obs.Id</td>
+                        <td>@obs.FechaObservacion</td>
+                        <td><strong>@obs.ObjetoCeleste</strong></td>
+                        <td><span class="badge bg-secondary">@obs.TipoObjeto</span></td>
+                        <td>@obs.Telescopio</td>
                         <td>
-                            @if (!string.IsNullOrEmpty(indicador))
+                            @if (!string.IsNullOrEmpty(obs.IndicadorIA))
                             {
-                                <span class="badge bg-@badgeCss">@indicador</span>
-                                @if (!string.IsNullOrEmpty(detalle))
+                                <span class="badge bg-@badgeCss">@obs.IndicadorIA</span>
+                                @if (!string.IsNullOrEmpty(obs.DetalleIA))
                                 {
                                     <button type="button" class="btn btn-link btn-sm p-0 ms-1"
                                             data-bs-toggle="popover" data-bs-trigger="focus"
-                                            data-bs-content="@detalle" title="Detalle IA">
+                                            data-bs-content="@obs.DetalleIA" title="Detalle IA">
                                         <small>ver detalle</small>
                                     </button>
                                 }
@@ -65,9 +55,9 @@ else
                             }
                         </td>
                         <td>
-                            @if (!string.IsNullOrEmpty(notas))
+                            @if (!string.IsNullOrEmpty(obs.Notas))
                             {
-                                <span class="text-truncate d-inline-block" style="max-width:200px" title="@notas">@notas</span>
+                                <span class="text-truncate d-inline-block" style="max-width:200px" title="@obs.Notas">@obs.Notas</span>
                             }
                             else
                             {

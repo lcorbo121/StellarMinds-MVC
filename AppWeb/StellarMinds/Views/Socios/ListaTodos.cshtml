@@ -1,8 +1,8 @@
+@model List<StellarMinds.Models.Usuarios.UsuarioListaItem>
 @{
     ViewData["Title"] = "Usuarios del sistema";
-    var usuarios = (ViewBag.Usuarios as List<System.Text.Json.JsonElement>) ?? new();
 
-    string RolBadgeClass(string rol) => rol switch {
+    string RolBadgeClass(string? rol) => rol switch {
         "Administrador" => "bg-danger",
         "Coordinador"   => "bg-warning text-dark",
         _               => "bg-primary"
@@ -12,9 +12,9 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Usuarios del sistema</h2>
     <div class="d-flex gap-2">
-        <span class="badge bg-danger fs-6">@usuarios.Count(u => u.GetProperty("rol").GetString() == "Administrador") Admin</span>
-        <span class="badge bg-warning text-dark fs-6">@usuarios.Count(u => u.GetProperty("rol").GetString() == "Coordinador") Coord.</span>
-        <span class="badge bg-primary fs-6">@usuarios.Count(u => u.GetProperty("rol").GetString() == "Socio") Socios</span>
+        <span class="badge bg-danger fs-6">@Model.Count(u => u.Rol == "Administrador") Admin</span>
+        <span class="badge bg-warning text-dark fs-6">@Model.Count(u => u.Rol == "Coordinador") Coord.</span>
+        <span class="badge bg-primary fs-6">@Model.Count(u => u.Rol == "Socio") Socios</span>
     </div>
 </div>
 
@@ -29,7 +29,7 @@
     <button class="btn btn-sm btn-primary" data-rol="Socio">Socio</button>
 </div>
 
-@if (!usuarios.Any())
+@if (!Model.Any())
 {
     <div class="alert alert-info">No hay usuarios registrados.</div>
 }
@@ -47,19 +47,14 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var u in usuarios)
+                @foreach (var u in Model)
                 {
-                    var rol    = u.GetProperty("rol").GetString() ?? "";
-                    var nombre = u.GetProperty("nombreCompleto").GetString() ?? "";
-                    var user   = u.GetProperty("userName").GetString() ?? "";
-                    var email  = u.GetProperty("email").GetString() ?? "";
-                    var id     = u.GetProperty("id").GetInt32();
-                    <tr data-rol="@rol" data-texto="@nombre.ToLower() @user.ToLower() @email.ToLower()">
-                        <td class="text-muted small">@id</td>
-                        <td><span class="badge @RolBadgeClass(rol)">@rol</span></td>
-                        <td>@nombre</td>
-                        <td><code>@user</code></td>
-                        <td class="text-muted small">@email</td>
+                    <tr data-rol="@u.Rol" data-texto="@($"{u.NombreCompleto} {u.UserName} {u.Email}".ToLower())">
+                        <td class="text-muted small">@u.Id</td>
+                        <td><span class="badge @RolBadgeClass(u.Rol)">@u.Rol</span></td>
+                        <td>@u.NombreCompleto</td>
+                        <td><code>@u.UserName</code></td>
+                        <td class="text-muted small">@u.Email</td>
                     </tr>
                 }
             </tbody>

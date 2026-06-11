@@ -5,7 +5,7 @@
 
 @if (TempData["Exito"] != null) { <div class="alert alert-success alert-dismissible fade show">@TempData["Exito"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
 @if (TempData["Error"] != null)  { <div class="alert alert-danger  alert-dismissible fade show">@TempData["Error"]<button  type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
-<div id="disponibilidadAlerta" class="alert alert-warning d-none"><strong>Sin disponibilidad:</strong> El telescopio seleccionado no tiene unidades disponibles.</div>
+<div id="disponibilidadAlerta" class="alert alert-danger d-none"></div>
 
 <div class="row g-4">
     @* Formulario *@
@@ -132,23 +132,46 @@
     // -- Estado actual --
     let tel = null, mon = null, cam = null, ocu = null;
 
-    // -- Disponibilidad --
-    async function checkDisponibilidad(id) {
-        const alerta = document.getElementById('disponibilidadAlerta');
-        const info   = document.getElementById('disponibilidadInfo');
-        const btn    = document.getElementById('btnSubmit');
-        if (!id) { alerta.classList.add('d-none'); info.textContent = ''; btn.disabled = false; return; }
+    // -- Disponibilidad (consulta al WebAPI por cada equipo seleccionado) --
+    // disp[tipo] = { ok: bool, n: number, label: string }. Si el tipo no está, no hay equipo seleccionado.
+    const disp = {};
+
+    async function checkDisponibilidad(tipo, id, label) {
+        const info = document.getElementById('disponibilidadInfo');
+        if (!id) {
+            delete disp[tipo];
+            if (tipo === 'telescopios') info.textContent = '';
+            actualizarDisponibilidad();
+            return;
+        }
         try {
-            const resp = await fetch(`/Equipos/Disponibilidad?id=${id}`);
+            const resp = await fetch(`/Equipos/Disponibilidad?tipo=${tipo}&id=${id}`);
             if (resp.ok) {
                 const d = await resp.json();
-                if (d.disponibles <= 0) {
-                    alerta.classList.remove('d-none'); info.textContent = 'Unidades disponibles: 0'; btn.disabled = true;
-                } else {
-                    alerta.classList.add('d-none'); info.textContent = `Unidades disponibles: ${d.disponibles}`; btn.disabled = false;
-                }
+                disp[tipo] = { ok: d.disponibles > 0, n: d.disponibles, label: label };
+                if (tipo === 'telescopios') info.textContent = `Unidades disponibles: ${d.disponibles}`;
+            } else {
+                disp[tipo] = { ok: false, n: 0, label: label };
             }
-        } catch { info.textContent = ''; }
+        } catch { delete disp[tipo]; }
+        actualizarDisponibilidad();
+    }
+
+    // Muestra un mensaje con los equipos sin disponibilidad y bloquea el envío si los hay.
+    function actualizarDisponibilidad() {
+        const alerta = document.getElementById('disponibilidadAlerta');
+        const btn    = document.getElementById('btnSubmit');
+        const sinStock = Object.values(disp).filter(d => !d.ok);
+        if (sinStock.length > 0) {
+            alerta.innerHTML = '<strong>Sin disponibilidad:</strong> ' +
+                sinStock.map(d => `${d.label} (0 unidades)`).join(', ') +
+                '. No se puede registrar el préstamo.';
+            alerta.classList.remove('d-none');
+            btn.disabled = true;
+        } else {
+            alerta.classList.add('d-none');
+            btn.disabled = false;
+        }
     }
 
     // -- Render panel --
@@ -281,11 +304,12 @@
     // -- Event listeners --
     document.getElementById('selectTelescopio').addEventListener('change', function () {
         tel = find(telescopios, this.value);
-        checkDisponibilidad(this.value);
+        checkDisponibilidad('telescopios', this.value, 'Telescopio');
         renderPanel();
     });
     document.getElementById('selectMontura').addEventListener('change', function () {
         mon = find(monturas, this.value);
+        checkDisponibilidad('monturas', this.value, 'Montura');
         renderPanel();
     });
     const selCamara = document.getElementById('selectCamara');
@@ -293,14 +317,16 @@
     selCamara.addEventListener('change', function () {
         cam = find(camaras, this.value);
         // Cámara (astrofotografía) y ocular (visual) son excluyentes: uno u otro, no ambos.
-        if (this.value) { selOcular.value = ''; ocu = null; selOcular.disabled = true; }
+        if (this.value) { selOcular.value = ''; ocu = null; selOcular.disabled = true; delete disp['oculares']; }
         else { selOcular.disabled = false; }
+        checkDisponibilidad('camaras', this.value, 'Cámara');
         renderPanel();
     });
     selOcular.addEventListener('change', function () {
         ocu = find(oculares, this.value);
-        if (this.value) { selCamara.value = ''; cam = null; selCamara.disabled = true; }
+        if (this.value) { selCamara.value = ''; cam = null; selCamara.disabled = true; delete disp['camaras']; }
         else { selCamara.disabled = false; }
+        checkDisponibilidad('oculares', this.value, 'Ocular');
         renderPanel();
     });
 })();

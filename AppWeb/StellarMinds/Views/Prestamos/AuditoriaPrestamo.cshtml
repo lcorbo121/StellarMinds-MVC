@@ -1,0 +1,39 @@
+@model StellarMinds.Models.Prestamos.AuditoriaPrestamoViewModel
+@{
+    ViewData["Title"] = "Auditoría del préstamo";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Auditoría del préstamo <span class="text-muted fs-4">#@Model.PrestamoId</span></h2>
+    <div class="d-flex gap-2">
+        <a asp-action="DetallePrestamo" asp-route-prestamoId="@Model.PrestamoId" class="btn btn-outline-primary">Ver detalles del préstamo</a>
+        <a asp-action="Auditoria" class="btn btn-outline-secondary">← Volver al listado</a>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr><th>#</th><th>Coordinador</th><th>Acción</th><th>Fecha y hora</th></tr>
+        </thead>
+        <tbody>
+        @if (!Model.Auditoria.Any())
+        {
+            <tr><td colspan="4" class="text-center text-muted">No hay registros de auditoría para este préstamo.</td></tr>
+        }
+        else
+        {
+            @foreach (var a in Model.Auditoria)
+            {
+                var badgeClass = a.Accion == "DEVOLUCION" ? "bg-success" : "bg-primary";
+                <tr>
+                    <td class="text-muted small">@a.Id</td>
+                    <td>@a.CoordinadorNombre</td>
+                    <td><span class="badge @badgeClass">@a.Accion</span></td>
+                    <td>@a.FechaAccion.ToString("dd/MM/yyyy HH:mm")</td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+</div>

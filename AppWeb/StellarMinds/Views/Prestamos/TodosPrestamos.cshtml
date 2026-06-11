@@ -1,15 +1,14 @@
-@using System.Text.Json
+@model List<StellarMinds.Models.Prestamos.PrestamoListaItem>
 @{
     ViewData["Title"] = "Todos los préstamos";
-    var lista = (ViewBag.Prestamos as List<JsonElement>) ?? new List<JsonElement>();
-    var enPrestamo = lista.Count(p => p.TryGetProperty("estado", out var e) && e.GetString() == "EN PRÉSTAMO");
-    var devueltos  = lista.Count(p => p.TryGetProperty("estado", out var e) && e.GetString() == "DEVUELTO");
-    var atrasados  = lista.Count(p => p.TryGetProperty("atrasado", out var a) && a.GetBoolean());
+    var enPrestamo = Model.Count(p => p.Estado == "EN PRÉSTAMO");
+    var devueltos  = Model.Count(p => p.Estado == "DEVUELTO");
+    var atrasados  = Model.Count(p => p.Atrasado);
 }
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Todos los préstamos</h2>
     <div class="d-flex gap-2">
-        <span class="badge bg-primary fs-6">@lista.Count total</span>
+        <span class="badge bg-primary fs-6">@Model.Count total</span>
         <span class="badge bg-warning text-dark fs-6">@enPrestamo en préstamo</span>
         <span class="badge bg-success fs-6">@devueltos devueltos</span>
         @if (atrasados > 0)
@@ -19,7 +18,7 @@
     </div>
 </div>
 
-@if (!lista.Any())
+@if (!Model.Any())
 {
     <div class="alert alert-info">No hay préstamos registrados.</div>
 }
@@ -52,43 +51,31 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var p in lista)
+                @foreach (var p in Model)
                 {
-                    var id          = p.TryGetProperty("id",            out var pId)  ? pId.GetInt32()    : 0;
-                    var socio       = p.TryGetProperty("usuarioNombre", out var pS)   ? pS.GetString()    : "";
-                    var telescopio  = p.TryGetProperty("telescopioNombre", out var pT) ? pT.GetString()   : "";
-                    var montura     = p.TryGetProperty("monturaNombre", out var pM)   ? pM.GetString()    : "";
-                    var camara      = p.TryGetProperty("camaraNombre",  out var pC) && pC.ValueKind != JsonValueKind.Null ? pC.GetString() : null;
-                    var ocular      = p.TryGetProperty("ocularNombre",  out var pO) && pO.ValueKind != JsonValueKind.Null ? pO.GetString() : null;
-                    var accesorio   = camara ?? ocular ?? "—";
-                    var inicio      = p.TryGetProperty("fechaInicio",   out var pFi)  ? DateTime.Parse(pFi.GetString()!).ToString("dd/MM/yyyy") : "";
-                    var fin         = p.TryGetProperty("fechaFin",      out var pFf)  ? DateTime.Parse(pFf.GetString()!).ToString("dd/MM/yyyy") : "";
-                    var estado      = p.TryGetProperty("estado",        out var pE)   ? pE.GetString()    : "";
-                    var atrasado    = p.TryGetProperty("atrasado",      out var pA)   && pA.GetBoolean();
-                    var estadoCss   = estado == "DEVUELTO" ? "success" : atrasado ? "danger" : "warning";
-                    var estadoLabel = atrasado ? "ATRASADO" : estado;
-
-                    <tr data-estado="@estado" data-atrasado="@atrasado.ToString().ToLower()">
-                        <td class="text-muted small">@id</td>
-                        <td><strong>@socio</strong></td>
-                        <td>@telescopio</td>
-                        <td class="text-muted small">@montura</td>
+                    var estadoCss   = p.Estado == "DEVUELTO" ? "success" : p.Atrasado ? "danger" : "warning";
+                    var estadoLabel = p.Atrasado ? "ATRASADO" : p.Estado;
+                    <tr data-estado="@p.Estado" data-atrasado="@p.Atrasado.ToString().ToLower()">
+                        <td class="text-muted small">@p.Id</td>
+                        <td><strong>@p.UsuarioNombre</strong></td>
+                        <td>@p.TelescopioNombre</td>
+                        <td class="text-muted small">@p.MonturaNombre</td>
                         <td>
-                            @if (camara != null)
+                            @if (!string.IsNullOrEmpty(p.CamaraNombre))
                             {
-                                <span class="badge bg-info text-dark">Cám</span> <span class="small">@camara</span>
+                                <span class="badge bg-info text-dark">Cám</span> <span class="small">@p.CamaraNombre</span>
                             }
-                            else if (ocular != null)
+                            else if (!string.IsNullOrEmpty(p.OcularNombre))
                             {
-                                <span class="badge bg-secondary">Ocular</span> <span class="small">@ocular</span>
+                                <span class="badge bg-secondary">Ocular</span> <span class="small">@p.OcularNombre</span>
                             }
                             else
                             {
                                 <span class="text-muted small">—</span>
                             }
                         </td>
-                        <td class="small">@inicio</td>
-                        <td class="small @(atrasado ? "text-danger fw-bold" : "")">@fin</td>
+                        <td class="small">@p.FechaInicio.ToString("dd/MM/yyyy")</td>
+                        <td class="small @(p.Atrasado ? "text-danger fw-bold" : "")">@p.FechaFin.ToString("dd/MM/yyyy")</td>
                         <td><span class="badge bg-@estadoCss">@estadoLabel</span></td>
                     </tr>
                 }

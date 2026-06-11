@@ -118,11 +118,10 @@ namespace StellarMinds.Controllers
         public IActionResult DetalleEquipo(string tipo, int id)
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
-            var equipo = _http.EnviarYDeserializar<JsonElement?>($"{UrlTipo(tipo)}/{id}", "GET", token: Token);
+            var equipo = _http.EnviarYDeserializar<EquipoDetalleItem>($"{UrlTipo(tipo)}/{id}", "GET", token: Token);
             if (equipo == null) { TempData["Error"] = "No se encontró el equipo."; return RedirectToAction("Index", new { tipo }); }
             ViewBag.Tipo = tipo.ToLower();
-            ViewBag.Equipo = equipo;
-            return View();
+            return View(equipo);
         }
 
         [HttpGet]
@@ -198,11 +197,12 @@ namespace StellarMinds.Controllers
         }
 
         [HttpGet]
-        public IActionResult Disponibilidad(int id)
+        public IActionResult Disponibilidad(string tipo = "telescopios", int id = 0)
         {
             if (Token == null) return Json(new { error = "No autorizado" });
-            var json = _http.ObtenerBody(_http.EnviarSolicitud($"api/telescopios/{id}/disponibilidad", "GET", token: Token));
-            return Content(json, "application/json");
+            var resp = _http.EnviarSolicitud($"{UrlTipo(tipo)}/{id}/disponibilidad", "GET", token: Token);
+            if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, _http.ObtenerMensajeError(resp));
+            return Content(_http.ObtenerBody(resp), "application/json");
         }
 
         [HttpPost, ValidateAntiForgeryToken]

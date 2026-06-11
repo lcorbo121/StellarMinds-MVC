@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using StellarMinds.Models.Observaciones;
 using System.Text.Json;
 using WebApp.Services.Http;
 
@@ -21,9 +22,8 @@ namespace StellarMinds.Controllers
         public IActionResult Ranking()
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
-            var ranking = _http.EnviarYDeserializar<List<JsonElement>>("api/observaciones/ranking", "GET", token: Token) ?? [];
-            ViewBag.Ranking = ranking;
-            return View();
+            var ranking = _http.EnviarYDeserializar<List<RankingItem>>("api/observaciones/ranking", "GET", token: Token) ?? [];
+            return View(ranking);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
@@ -62,9 +62,8 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Socio") return Forbid();
-            var lista = _http.EnviarYDeserializar<List<JsonElement>>("api/observaciones/mis-observaciones", "GET", token: Token) ?? [];
-            ViewBag.Observaciones = lista;
-            return View();
+            var lista = _http.EnviarYDeserializar<List<ObservacionItem>>("api/observaciones/mis-observaciones", "GET", token: Token) ?? [];
+            return View(lista);
         }
 
         [HttpGet]
@@ -72,9 +71,8 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Coordinador" && Rol != "Administrador") return Forbid();
-            var lista = _http.EnviarYDeserializar<List<JsonElement>>("api/observaciones/todas", "GET", token: Token) ?? [];
-            ViewBag.Observaciones = lista;
-            return View();
+            var lista = _http.EnviarYDeserializar<List<ObservacionItem>>("api/observaciones/todas", "GET", token: Token) ?? [];
+            return View(lista);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
@@ -108,10 +106,9 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Socio" && Rol != "Coordinador" && Rol != "Administrador") return Forbid();
-            var obs = _http.EnviarYDeserializar<JsonElement?>($"api/observaciones/{id}", "GET", token: Token);
+            var obs = _http.EnviarYDeserializar<ObservacionItem>($"api/observaciones/{id}", "GET", token: Token);
             if (obs == null) { TempData["Error"] = "No se encontró la observación."; return RedirectToAction("Create"); }
-            ViewBag.Observacion = obs;
-            return View();
+            return View(obs);
         }
     }
 }

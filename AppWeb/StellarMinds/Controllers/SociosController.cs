@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using StellarMinds.Models.Socios;
+using StellarMinds.Models.Usuarios;
 using System.Text.Json;
 using WebApp.Services.Http;
 
@@ -30,9 +31,8 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Administrador") return Forbid();
-            var usuarios = _http.EnviarYDeserializar<List<JsonElement>>("api/usuarios/todos", "GET", token: Token) ?? [];
-            ViewBag.Usuarios = usuarios;
-            return View();
+            var usuarios = _http.EnviarYDeserializar<List<UsuarioListaItem>>("api/usuarios/todos", "GET", token: Token) ?? [];
+            return View(usuarios);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
@@ -76,10 +76,9 @@ namespace StellarMinds.Controllers
         {
             if (Token == null) return RedirectToAction("Index", "Usuarios");
             if (Rol != "Administrador") return Forbid();
-            var socio = _http.EnviarYDeserializar<JsonElement?>($"api/usuarios/{id}", "GET", token: Token);
+            var socio = _http.EnviarYDeserializar<UsuarioListaItem>($"api/usuarios/{id}", "GET", token: Token);
             if (socio == null) { TempData["Error"] = "No se encontró el socio."; return RedirectToAction("ListaTodos"); }
-            ViewBag.Socio = socio;
-            return View();
+            return View(socio);
         }
     }
 }

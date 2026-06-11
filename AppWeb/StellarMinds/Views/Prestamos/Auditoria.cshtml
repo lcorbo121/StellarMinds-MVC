@@ -1,43 +1,42 @@
+@model StellarMinds.Models.Prestamos.AuditoriaViewModel
 @{
     ViewData["Title"] = "Auditoría de préstamos";
-    var auditoria = (List<System.Text.Json.JsonElement>)(ViewBag.Auditoria ?? new List<System.Text.Json.JsonElement>());
-    var coordinadores = (List<System.Text.Json.JsonElement>)(ViewBag.Coordinadores ?? new List<System.Text.Json.JsonElement>());
-    var coordinadorSeleccionado = (int?)ViewBag.CoordinadorSeleccionado;
 }
 <div class="d-flex justify-content-between align-items-center mb-3"><h2>Auditoría de préstamos</h2></div>
+
 <div class="card shadow-sm mb-4"><div class="card-body py-3">
     <form asp-action="Auditoria" method="get" class="row g-2 align-items-end">
         <div class="col-auto">
-            <label for="coordinadorId" class="form-label mb-1">Filtrar por coordinador</label>
+            <label for="coordinadorId" class="form-label mb-1">Filtrar por coordinador que dio el alta</label>
             <select name="coordinadorId" id="coordinadorId" class="form-select">
                 <option value="">-- Todos --</option>
-                @foreach (var c in coordinadores) {
-                    var cId = c.TryGetProperty("id", out var ip) ? ip.GetInt32() : 0;
-                    var cRol = c.TryGetProperty("rol", out var rp) ? rp.GetString() : "";
-                    if (cRol == "Coordinador") {
-                        var cNombre = c.TryGetProperty("nombreCompleto", out var np) ? np.GetString() : cId.ToString();
-                        if (coordinadorSeleccionado == cId) { <option value="@cId" selected>@cNombre</option> }
-                        else { <option value="@cId">@cNombre</option> }
-                    }
+                @foreach (var c in Model.Coordinadores.Where(c => c.Rol == "Coordinador")) {
+                    if (Model.CoordinadorSeleccionado == c.Id) { <option value="@c.Id" selected>@c.NombreCompleto</option> }
+                    else { <option value="@c.Id">@c.NombreCompleto</option> }
                 }
             </select>
         </div>
         <div class="col-auto"><button type="submit" class="btn btn-primary">Filtrar</button>
-        @if (coordinadorSeleccionado.HasValue) { <a asp-action="Auditoria" class="btn btn-outline-secondary ms-1">Limpiar</a> }</div>
+        @if (Model.CoordinadorSeleccionado.HasValue) { <a asp-action="Auditoria" class="btn btn-outline-secondary ms-1">Limpiar</a> }</div>
     </form>
 </div></div>
+
 <div class="table-responsive"><table class="table table-striped table-hover align-middle">
-    <thead class="table-dark"><tr><th>ID</th><th>Préstamo</th><th>Coordinador</th><th>Acción</th><th>Fecha</th><th>Detalle</th></tr></thead>
+    <thead class="table-dark"><tr><th>#</th><th>Socio</th><th>Telescopio</th><th>Estado</th><th>Coordinador (alta)</th><th>Auditoría</th></tr></thead>
     <tbody>
-    @if (!auditoria.Any()) { <tr><td colspan="6" class="text-center text-muted">No hay registros de auditoría.</td></tr> }
-    else { @foreach (var a in auditoria) {
-        var aId = a.TryGetProperty("id", out var ip) ? ip.GetInt32() : 0;
-        var pId = a.TryGetProperty("prestamoId", out var pp) ? pp.GetInt32() : 0;
-        var coord = a.TryGetProperty("coordinadorNombre", out var cp) ? cp.GetString() : "—";
-        var accion = a.TryGetProperty("accion", out var ap) ? ap.GetString() : "—";
-        var fecha = a.TryGetProperty("fechaAccion", out var fp) ? fp.GetString() : "—";
-        DateTime fd; var fechaF = DateTime.TryParse(fecha, out fd) ? fd.ToString("dd/MM/yyyy HH:mm") : fecha;
-        <tr><td>@aId</td><td><a asp-action="DetallePrestamo" asp-route-prestamoId="@pId" class="text-decoration-none">#@pId</a></td><td>@coord</td><td>@accion</td><td>@fechaF</td><td><a asp-action="DetallePrestamo" asp-route-prestamoId="@pId" class="btn btn-sm btn-outline-info">Ver</a></td></tr>
+    @if (!Model.Prestamos.Any()) { <tr><td colspan="6" class="text-center text-muted">No hay préstamos para mostrar.</td></tr> }
+    else { @foreach (var item in Model.Prestamos) {
+        var p = item.Prestamo;
+        var estadoCss = p.Estado == "DEVUELTO" ? "success" : p.Atrasado ? "danger" : "warning";
+        var estadoLabel = p.Atrasado ? "ATRASADO" : p.Estado;
+        <tr>
+            <td class="text-muted small">@p.Id</td>
+            <td><strong>@p.UsuarioNombre</strong></td>
+            <td>@p.TelescopioNombre</td>
+            <td><span class="badge bg-@estadoCss">@estadoLabel</span></td>
+            <td>@item.CoordinadorNombre</td>
+            <td><a asp-action="AuditoriaPrestamo" asp-route-prestamoId="@p.Id" class="btn btn-sm btn-outline-info">Ver auditoría</a></td>
+        </tr>
     } }
     </tbody>
 </table></div>
