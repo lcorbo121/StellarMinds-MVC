@@ -13,6 +13,10 @@
   <img src="https://img.shields.io/badge/Razor-Views-blue?style=flat" alt="Razor"/>
 </p>
 
+<p align="center">
+  <a href="https://335305-364673-MVC.somee.com/"><b>🔗 Demo en vivo</b></a>
+</p>
+
 ---
 
 ## 📋 Descripción
@@ -25,8 +29,6 @@
 
 ## 📸 Capturas de pantalla
 
-> ⚠️ Reemplazá estas imágenes por tus capturas reales (ver instrucciones más abajo).
-
 <table>
   <tr>
     <td width="50%" align="center">
@@ -34,18 +36,39 @@
       <img src="screenshots/login.png" alt="Login" width="100%"/>
     </td>
     <td width="50%" align="center">
-      <b>Equipos</b><br/>
+      <b>Gestión de equipos</b><br/>
       <img src="screenshots/equipos.png" alt="Equipos" width="100%"/>
     </td>
   </tr>
   <tr>
     <td width="50%" align="center">
-      <b>Observaciones / Ranking</b><br/>
-      <img src="screenshots/observaciones.png" alt="Observaciones" width="100%"/>
+      <b>Ranking de objetos celestes</b><br/>
+      <img src="screenshots/ranking.png" alt="Ranking" width="100%"/>
     </td>
     <td width="50%" align="center">
       <b>Préstamos</b><br/>
       <img src="screenshots/prestamos.png" alt="Préstamos" width="100%"/>
+    </td>
+  </tr>
+</table>
+
+### 🔐 Vistas según el rol
+
+La aplicación implementa **control de acceso por rol**: cada usuario ve un panel y un menú distintos.
+
+<table>
+  <tr>
+    <td width="33%" align="center">
+      <b>Administrador</b><br/>
+      <img src="screenshots/dashboard-admin.png" alt="Dashboard administrador" width="100%"/>
+    </td>
+    <td width="33%" align="center">
+      <b>Coordinador</b><br/>
+      <img src="screenshots/dashboard-coordinador.png" alt="Dashboard coordinador" width="100%"/>
+    </td>
+    <td width="33%" align="center">
+      <b>Socio</b><br/>
+      <img src="screenshots/dashboard-socio.png" alt="Dashboard socio" width="100%"/>
     </td>
   </tr>
 </table>
@@ -59,6 +82,7 @@
 - 🔭 **Equipos** — gestión de telescopios, cámaras, oculares y monturas (alta/edición/detalle por tipo).
 - 🌌 **Observaciones** — registro de observaciones astronómicas, listados y **ranking**.
 - 📦 **Préstamos** — préstamo y devolución de equipos, auditoría e informes (socios por telescopio).
+- 🔐 **Roles y permisos** — vistas y acciones diferenciadas para **Administrador**, **Coordinador** y **Socio**.
 
 ---
 
